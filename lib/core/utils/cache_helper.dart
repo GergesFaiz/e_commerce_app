@@ -27,4 +27,12 @@ class CacheHelper {
   static Future<bool> clearData() async {
     return await _prefs!.clear();
   }
+
+  static Future<bool> removeToken() async {
+    return await _prefs!.remove(AppConstants.tokenKey);
+  }
+
+  static Future<bool> removeUserId() async {
+    return await _prefs!.remove(AppConstants.userIdKey);
+  }
 }

@@ -1,31 +1,46 @@
 import 'package:flutter/material.dart';
+import 'core/di/service_locator.dart';
+import 'core/router/app_router.dart';
+import 'core/utils/cache_helper.dart';
 
-import 'core/di/di.dart';
-import 'features/categories/presentation/view/screens/home.dart';
-
-void main() {
-  configureDependencies();
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CacheHelper.init();
+  await setupServiceLocator();
+  runApp(const RouteEcommerceApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class RouteEcommerceApp extends StatelessWidget {
+  const RouteEcommerceApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    return MaterialApp.router(
+      title: 'Route E-Commerce',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3BB77E)),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.yellow,
+            backgroundColor: const Color(0xFF3BB77E),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF3BB77E), width: 2),
           ),
         ),
       ),
-      home: HomeScreen(),
+      routerConfig: AppRouter.router,
     );
   }
 }

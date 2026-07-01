@@ -4,10 +4,9 @@ import '../../../../core/error/failure.dart';
 import '../entities/product_entity.dart';
 import '../repos/i_products_repo.dart';
 
-class GetProductsUseCase extends BaseUseCase<List<ProductEntity>, String?> {
+class GetProductDetailsUseCase extends BaseUseCase<ProductEntity, String> {
   final IProductsRepo _repo;
-  GetProductsUseCase(this._repo);
+  GetProductDetailsUseCase(this._repo);
   @override
-  Future<Either<Failure, List<ProductEntity>>> call(String? categoryId) =>
-      _repo.getProducts(categoryId: categoryId);
+  Future<Either<Failure, ProductEntity>> call(String id) => _repo.getProductById(id);
 }

@@ -21,7 +21,7 @@ Map<String, dynamic> _$WishlistResponseModelToJson(
     <String, dynamic>{
       'status': instance.status,
       'message': instance.message,
-      'data': instance.data,
+      'data': instance.data?.map((e) => e.toJson()).toList(),
     };
 
 WishlistItemModel _$WishlistItemModelFromJson(Map<String, dynamic> json) =>

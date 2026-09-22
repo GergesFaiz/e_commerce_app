@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import '../network/api_service.dart';
 import '../network/dio_factory.dart';
 import '../network/network_info.dart';
-import '../utils/cache_helper.dart';
 
 // Auth
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';

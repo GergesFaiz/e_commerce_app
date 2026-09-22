@@ -15,7 +15,7 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'message': instance.message,
       'token': instance.token,
-      'user': instance.user,
+      'user': instance.user.toJson(),
     };
 
 UserData _$UserDataFromJson(Map<String, dynamic> json) => UserData(

@@ -19,7 +19,7 @@ Map<String, dynamic> _$CartResponseModelToJson(CartResponseModel instance) =>
       'status': instance.status,
       'numOfCartItems': instance.numOfCartItems,
       'cartId': instance.cartId,
-      'data': instance.data,
+      'data': instance.data.toJson(),
     };
 
 CartDataModel _$CartDataModelFromJson(Map<String, dynamic> json) =>
@@ -36,7 +36,7 @@ Map<String, dynamic> _$CartDataModelToJson(CartDataModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'cartOwner': instance.cartOwner,
-      'products': instance.products,
+      'products': instance.products.map((e) => e.toJson()).toList(),
       'totalCartPrice': instance.totalCartPrice,
     };
 
@@ -53,7 +53,7 @@ Map<String, dynamic> _$CartItemModelToJson(CartItemModel instance) =>
       'id': instance.id,
       'count': instance.count,
       'price': instance.price,
-      'product': instance.product,
+      'product': instance.product.toJson(),
     };
 
 CartProductRef _$CartProductRefFromJson(Map<String, dynamic> json) =>

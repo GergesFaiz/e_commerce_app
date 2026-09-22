@@ -3,7 +3,7 @@ import '../../domain/entities/user_entity.dart';
 
 part 'user_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserModel {
   final String message;
   final String token;
@@ -20,7 +20,7 @@ class UserModel {
   );
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserData {
   final String name;
   final String email;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/custom_loading.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -78,7 +77,7 @@ class _ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -104,10 +103,10 @@ class _ProductCard extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.9),
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
                     radius: 16,
                     child: IconButton(
-                      icon: Icon(Icons.favorite_border, size: 16, color: AppColors.textSecondary),
+                      icon: const Icon(Icons.favorite_border, size: 16, color: AppColors.textSecondary),
                       onPressed: () {},
                     ),
                   ),
@@ -126,14 +125,14 @@ class _ProductCard extends StatelessWidget {
                       children: [
                         Text(
                           product.categoryName,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           product.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: AppColors.textPrimary,
@@ -149,7 +148,7 @@ class _ProductCard extends StatelessWidget {
                           children: [
                             Text(
                               'EGP ${product.price}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
@@ -158,7 +157,7 @@ class _ProductCard extends StatelessWidget {
                             if (product.priceAfterDiscount != null)
                               Text(
                                 'EGP ${product.priceAfterDiscount}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.textSecondary,
                                   decoration: TextDecoration.lineThrough,
                                   fontSize: 12,
@@ -169,10 +168,10 @@ class _ProductCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.add, color: AppColors.primary, size: 20),
+                          child: const Icon(Icons.add, color: AppColors.primary, size: 20),
                         ),
                       ],
                     ),

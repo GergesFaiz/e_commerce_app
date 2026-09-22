@@ -3,7 +3,7 @@ import '../../domain/entities/category_entity.dart';
 
 part 'categories_response_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CategoriesResponseModel {
   final List<CategoryModel> data;
   CategoriesResponseModel({required this.data});

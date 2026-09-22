@@ -15,7 +15,7 @@ OrderResponseModel _$OrderResponseModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$OrderResponseModelToJson(OrderResponseModel instance) =>
     <String, dynamic>{
       'status': instance.status,
-      'data': instance.data,
+      'data': instance.data.toJson(),
     };
 
 OrdersListResponseModel _$OrdersListResponseModelFromJson(
@@ -29,7 +29,7 @@ OrdersListResponseModel _$OrdersListResponseModelFromJson(
 Map<String, dynamic> _$OrdersListResponseModelToJson(
         OrdersListResponseModel instance) =>
     <String, dynamic>{
-      'data': instance.data,
+      'data': instance.data.map((e) => e.toJson()).toList(),
     };
 
 OrderModel _$OrderModelFromJson(Map<String, dynamic> json) => OrderModel(
@@ -50,7 +50,7 @@ Map<String, dynamic> _$OrderModelToJson(OrderModel instance) =>
       'isPaid': instance.isPaid,
       'isDelivered': instance.isDelivered,
       'createdAt': instance.createdAt,
-      'cartItems': instance.cartItems,
+      'cartItems': instance.cartItems.map((e) => e.toJson()).toList(),
     };
 
 OrderItemModel _$OrderItemModelFromJson(Map<String, dynamic> json) =>
@@ -67,7 +67,7 @@ Map<String, dynamic> _$OrderItemModelToJson(OrderItemModel instance) =>
       'id': instance.id,
       'count': instance.count,
       'price': instance.price,
-      'product': instance.product,
+      'product': instance.product.toJson(),
     };
 
 OrderProductRef _$OrderProductRefFromJson(Map<String, dynamic> json) =>

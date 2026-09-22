@@ -3,7 +3,7 @@ import '../../domain/entities/wishlist_entity.dart';
 
 part 'wishlist_response_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class WishlistResponseModel {
   final String status, message;
   final List<WishlistItemModel>? data;

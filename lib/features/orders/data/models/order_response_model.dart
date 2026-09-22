@@ -3,7 +3,7 @@ import '../../domain/entities/order_entity.dart';
 
 part 'order_response_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class OrderResponseModel {
   final String status;
   final OrderModel data;
@@ -13,7 +13,7 @@ class OrderResponseModel {
   OrderEntity toEntity() => data.toEntity();
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class OrdersListResponseModel {
   final List<OrderModel> data;
   OrdersListResponseModel({required this.data});
@@ -21,7 +21,7 @@ class OrdersListResponseModel {
   Map<String, dynamic> toJson() => _$OrdersListResponseModelToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class OrderModel {
   final String id;
   final int totalOrderPrice;
@@ -34,7 +34,7 @@ class OrderModel {
   OrderEntity toEntity() => OrderEntity(id: id, totalOrderPrice: totalOrderPrice, isPaid: isPaid, isDelivered: isDelivered, createdAt: DateTime.parse(createdAt), cartItems: cartItems.map((e) => e.toEntity()).toList());
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class OrderItemModel {
   final String id;
   final int count, price;
@@ -45,7 +45,7 @@ class OrderItemModel {
   OrderItemEntity toEntity() => OrderItemEntity(productId: product.id, title: product.title, imageCover: product.imageCover, count: count, price: price);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class OrderProductRef {
   final String id, title, imageCover;
   OrderProductRef({required this.id, required this.title, required this.imageCover});

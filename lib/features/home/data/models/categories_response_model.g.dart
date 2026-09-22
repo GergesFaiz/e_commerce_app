@@ -17,7 +17,7 @@ CategoriesResponseModel _$CategoriesResponseModelFromJson(
 Map<String, dynamic> _$CategoriesResponseModelToJson(
         CategoriesResponseModel instance) =>
     <String, dynamic>{
-      'data': instance.data,
+      'data': instance.data.map((e) => e.toJson()).toList(),
     };
 
 CategoryModel _$CategoryModelFromJson(Map<String, dynamic> json) =>

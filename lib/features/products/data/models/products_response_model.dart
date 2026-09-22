@@ -3,7 +3,7 @@ import '../../domain/entities/product_entity.dart';
 
 part 'products_response_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ProductsResponseModel {
   final List<ProductModel> data;
   ProductsResponseModel({required this.data});
@@ -11,7 +11,7 @@ class ProductsResponseModel {
   Map<String, dynamic> toJson() => _$ProductsResponseModelToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ProductDetailsResponseModel {
   final ProductModel data;
   ProductDetailsResponseModel({required this.data});
@@ -19,7 +19,7 @@ class ProductDetailsResponseModel {
   Map<String, dynamic> toJson() => _$ProductDetailsResponseModelToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ProductModel {
   final String id, title, description, imageCover;
   final double price;
@@ -48,7 +48,7 @@ class ProductModel {
   );
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CategoryRef {
   final String id, name;
   CategoryRef({required this.id, required this.name});

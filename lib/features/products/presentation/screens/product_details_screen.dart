@@ -39,7 +39,7 @@ class ProductDetailsScreen extends StatelessWidget {
                           Text(' ${p.ratingsAverage} (${p.ratingsQuantity})'),
                         ]),
                         const SizedBox(height: 16),
-                        Text('Description', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Text('Description', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         Text(p.description),
                         const SizedBox(height: 24),

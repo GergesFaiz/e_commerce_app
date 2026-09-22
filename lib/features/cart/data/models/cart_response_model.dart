@@ -3,7 +3,7 @@ import '../../domain/entities/cart_entity.dart';
 
 part 'cart_response_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CartResponseModel {
   final String status;
   final int numOfCartItems;
@@ -21,7 +21,7 @@ class CartResponseModel {
   );
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CartDataModel {
   final String id, cartOwner;
   final List<CartItemModel> products;
@@ -31,7 +31,7 @@ class CartDataModel {
   Map<String, dynamic> toJson() => _$CartDataModelToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CartItemModel {
   final String id;
   final int count;
@@ -43,7 +43,7 @@ class CartItemModel {
   CartItemEntity toEntity() => CartItemEntity(id: id, productId: product.id, title: product.title, imageCover: product.imageCover, price: price.toDouble(), count: count);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CartProductRef {
   final String id, title, imageCover;
   CartProductRef({required this.id, required this.title, required this.imageCover});

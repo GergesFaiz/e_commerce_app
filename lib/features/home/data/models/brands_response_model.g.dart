@@ -16,7 +16,7 @@ BrandsResponseModel _$BrandsResponseModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$BrandsResponseModelToJson(
         BrandsResponseModel instance) =>
     <String, dynamic>{
-      'data': instance.data,
+      'data': instance.data.map((e) => e.toJson()).toList(),
     };
 
 BrandModel _$BrandModelFromJson(Map<String, dynamic> json) => BrandModel(

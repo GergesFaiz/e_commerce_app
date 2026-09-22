@@ -17,7 +17,7 @@ ProductsResponseModel _$ProductsResponseModelFromJson(
 Map<String, dynamic> _$ProductsResponseModelToJson(
         ProductsResponseModel instance) =>
     <String, dynamic>{
-      'data': instance.data,
+      'data': instance.data.map((e) => e.toJson()).toList(),
     };
 
 ProductDetailsResponseModel _$ProductDetailsResponseModelFromJson(
@@ -29,7 +29,7 @@ ProductDetailsResponseModel _$ProductDetailsResponseModelFromJson(
 Map<String, dynamic> _$ProductDetailsResponseModelToJson(
         ProductDetailsResponseModel instance) =>
     <String, dynamic>{
-      'data': instance.data,
+      'data': instance.data.toJson(),
     };
 
 ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel(
@@ -61,7 +61,7 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'sold': instance.sold,
       'quantity': instance.quantity,
       'images': instance.images,
-      'category': instance.category,
+      'category': instance.category.toJson(),
     };
 
 CategoryRef _$CategoryRefFromJson(Map<String, dynamic> json) => CategoryRef(

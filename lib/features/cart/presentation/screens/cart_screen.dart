@@ -36,8 +36,11 @@ class CartScreen extends StatelessWidget {
                           subtitle: Text('EGP ${item.price}', style: const TextStyle(color: Color(0xFF3BB77E), fontWeight: FontWeight.bold)),
                           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                             IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: () {
-                              if (item.count > 1) ctx.read<CartCubit>().updateQuantity(item.id, item.count - 1);
-                              else ctx.read<CartCubit>().removeFromCart(item.id);
+                              if (item.count > 1) {
+                                ctx.read<CartCubit>().updateQuantity(item.id, item.count - 1);
+                              } else {
+                                ctx.read<CartCubit>().removeFromCart(item.id);
+                              }
                             }),
                             Text('${item.count}'),
                             IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: () => ctx.read<CartCubit>().updateQuantity(item.id, item.count + 1)),
@@ -49,7 +52,7 @@ class CartScreen extends StatelessWidget {
                 ),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, -2))]),
+                  decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, -2))]),
                   child: Row(
                     children: [
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

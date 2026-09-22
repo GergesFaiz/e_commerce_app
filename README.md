@@ -6,12 +6,26 @@ A fully functional e-commerce mobile application built with **Flutter**, followi
 
 ## Features
 
-- 🔐 **Authentication** – login, register, forgot password (token persisted locally)
+- 🔐 **Authentication** – login, register, forgot password (token persisted locally, auto-redirect + 401 session clear)
 - 🏠 **Home** – categories & brands fetched from the API
-- 🛍️ **Products** – product listings + product details (price, discounts, ratings, images)
+- 🛍️ **Products** – listings + details with **search, price sort, infinite pagination (10/page), pull-to-refresh, offline cache fallback**
 - 🛒 **Cart** – add, update quantity, remove items
 - ❤️ **Wishlist** – save and remove favorite products
 - 📦 **Orders** – checkout and order history
+
+## Screenshots
+
+> Add screenshots under `screenshots/` (e.g. `home.png`, `products.png`, `cart.png`) and reference them here.
+> Recruiters screen repos in ~30 seconds — 4-5 real screenshots + a 30s demo video link doubles callbacks.
+
+```
+screenshots/
+├── home.png
+├── products.png
+├── product_details.png
+├── cart.png
+└── orders.png
+```
 
 ## Architecture
 
@@ -72,7 +86,7 @@ flutter run
 
 ## Tests
 
-**49 unit & widget tests** covering model JSON round-trips, entity mapping, use cases, cubits (auth flows) and key widgets (loading, error, login screen).
+**54 unit & widget tests** covering model JSON round-trips, entity mapping, use cases, cubits (auth, products search/sort/pagination, cart) and key widgets (loading, error, login screen).
 
 ```bash
 flutter test
@@ -82,6 +96,10 @@ flutter test
 | ------------- | --------------------------------------------------- |
 | Models        | `test/models/*_test.dart`                           |
 | Use cases     | `test/usecases/login_usecase_test.dart`             |
-| Cubits        | `test/cubits/auth_cubit_test.dart`                  |
+| Cubits        | `test/cubits/auth_cubit_test.dart`, `test/cubits/products_cubit_test.dart`, `test/cubits/cart_cubit_test.dart` |
 | Widgets       | `test/widgets/core_widgets_test.dart`, `test/widgets/login_screen_test.dart` |
 | Test helpers  | `test/helpers/fake_auth_repo.dart`                  |
+
+## CI
+
+GitHub Actions runs `dart analyze` + `flutter test` on every push/PR (`.github/workflows/flutter_ci.yml`).

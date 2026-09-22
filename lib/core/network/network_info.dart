@@ -10,9 +10,12 @@ class NetworkInfoImpl implements NetworkInfo {
 
   @override
   Future<bool> get isConnected async {
-    final result = await connectivity.checkConnectivity();
-    // In connectivity_plus 5.x it returns ConnectivityResult, in 6.x it returns List<ConnectivityResult>
-    // Based on the error, it seems to be returning a single ConnectivityResult here.
-    return result != ConnectivityResult.none;
+    final dynamic result = await connectivity.checkConnectivity();
+    // connectivity_plus 5.x returns ConnectivityResult,
+    // 6.x+ returns List<ConnectivityResult>. Support both.
+    if (result is List<ConnectivityResult>) {
+      return !result.contains(ConnectivityResult.none);
+    }
+    return (result as ConnectivityResult) != ConnectivityResult.none;
   }
 }

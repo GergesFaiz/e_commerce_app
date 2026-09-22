@@ -8,18 +8,69 @@ import '../../../../core/theme/app_colors.dart';
 import '../cubit/products_cubit.dart';
 import '../cubit/products_state.dart';
 
-class ProductsScreen extends StatelessWidget {
+class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
+
+  @override
+  State<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends State<ProductsScreen> {
+  final _searchController = TextEditingController();
+  bool _showSearch = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Explore Products'),
+        title: _showSearch
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search products...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (v) => context.read<ProductsCubit>().setSearchQuery(v),
+              )
+            : const Text('Explore Products'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
+            icon: Icon(_showSearch ? Icons.close : Icons.search, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchController.clear();
+                  context.read<ProductsCubit>().setSearchQuery('');
+                }
+              });
+            },
+          ),
+          BlocBuilder<ProductsCubit, ProductsState>(
+            builder: (context, state) {
+              final asc = state is ProductsLoaded ? state.sortByPriceAsc : null;
+              return IconButton(
+                tooltip: 'Sort by price',
+                icon: Icon(
+                  asc == null
+                      ? Icons.sort
+                      : asc
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                  color: Colors.white,
+                ),
+                onPressed: () => context.read<ProductsCubit>().toggleSortByPrice(),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
@@ -37,6 +88,27 @@ class ProductsScreen extends StatelessWidget {
             );
           }
           if (state is ProductsLoaded) {
+            if (state.products.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: () => context.read<ProductsCubit>().getProducts(),
+                color: AppColors.primary,
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 120),
+                    const Icon(Icons.search_off, size: 64, color: AppColors.textSecondary),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Text(
+                        state.query.isEmpty
+                            ? 'No products found.'
+                            : 'No results for "${state.query}".',
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
             return RefreshIndicator(
               onRefresh: () => context.read<ProductsCubit>().getProducts(),
               color: AppColors.primary,

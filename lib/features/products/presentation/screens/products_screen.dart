@@ -17,11 +17,29 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
   bool _showSearch = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 300) {
+      context.read<ProductsCubit>().loadMore();
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
@@ -113,6 +131,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               onRefresh: () => context.read<ProductsCubit>().getProducts(),
               color: AppColors.primary,
               child: GridView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
@@ -120,8 +139,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   mainAxisSpacing: 16,
                   childAspectRatio: 0.68,
                 ),
-                itemCount: state.products.length,
+                itemCount: state.products.length + (state.hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index >= state.products.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
                   final product = state.products[index];
                   return _ProductCard(product: product);
                 },

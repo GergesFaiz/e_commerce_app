@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_constants.dart';
 
@@ -34,5 +35,18 @@ class CacheHelper {
 
   static Future<bool> removeUserId() async {
     return await _prefs!.remove(AppConstants.userIdKey);
+  }
+
+  static Future<bool> saveString(String key, String value) async {
+    return await _prefs!.setString(key, value);
+  }
+
+  static String? getString(String key) {
+    return _prefs?.getString(key);
+  }
+
+  @visibleForTesting
+  static void setPrefsForTest(SharedPreferences prefs) {
+    _prefs = prefs;
   }
 }

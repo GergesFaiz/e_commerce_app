@@ -12,6 +12,8 @@ class ProductsCubit extends Cubit<ProductsState> {
   List<ProductEntity> _all = [];
   String _query = '';
   bool? _sortByPriceAsc;
+  static const int _pageSize = 10;
+  int _currentPage = 1;
 
   Future<void> getProducts({String? categoryId}) async {
     emit(ProductsLoading());
@@ -22,7 +24,8 @@ class ProductsCubit extends Cubit<ProductsState> {
         _all = p;
         _query = '';
         _sortByPriceAsc = null;
-        emit(ProductsLoaded(List.of(_all)));
+        _currentPage = 1;
+        emit(_pageState());
       },
     );
   }
@@ -33,7 +36,8 @@ class ProductsCubit extends Cubit<ProductsState> {
       return;
     }
     _query = query;
-    emit(ProductsLoaded(_filtered(), query: _query, sortByPriceAsc: _sortByPriceAsc));
+    _currentPage = 1;
+    emit(_pageState());
   }
 
   void toggleSortByPrice() {
@@ -43,7 +47,28 @@ class ProductsCubit extends Cubit<ProductsState> {
         : _sortByPriceAsc == true
             ? false
             : null;
-    emit(ProductsLoaded(_filtered(), query: _query, sortByPriceAsc: _sortByPriceAsc));
+    _currentPage = 1;
+    emit(_pageState());
+  }
+
+  void loadMore() {
+    final s = state;
+    if (s is! ProductsLoaded || !s.hasMore) return;
+    _currentPage++;
+    emit(_pageState());
+  }
+
+  ProductsLoaded _pageState() {
+    final filtered = _filtered();
+    final end = (_currentPage * _pageSize).clamp(0, filtered.length);
+    return ProductsLoaded(
+      filtered.take(end).toList(),
+      query: _query,
+      sortByPriceAsc: _sortByPriceAsc,
+      currentPage: _currentPage,
+      pageSize: _pageSize,
+      totalCount: filtered.length,
+    );
   }
 
   List<ProductEntity> _filtered() {

@@ -7,7 +7,18 @@ class ProductsLoaded extends ProductsState {
   final List<ProductEntity> products;
   final String query;
   final bool? sortByPriceAsc;
-  ProductsLoaded(this.products, {this.query = '', this.sortByPriceAsc});
+  final int currentPage;
+  final int pageSize;
+  final int totalCount;
+  bool get hasMore => currentPage * pageSize < totalCount;
+  ProductsLoaded(
+    this.products, {
+    this.query = '',
+    this.sortByPriceAsc,
+    this.currentPage = 1,
+    this.pageSize = 10,
+    int? totalCount,
+  }) : totalCount = totalCount ?? products.length;
 }
 class ProductDetailsLoaded extends ProductsState {
   final ProductEntity product;

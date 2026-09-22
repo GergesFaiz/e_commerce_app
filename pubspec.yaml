@@ -1,5 +1,5 @@
 name: e_commerce
-description: "A new Flutter project."
+description: "Flutter e-commerce app with clean architecture, Bloc state management and the Route Misr REST API."
 publish_to: 'none'
 
 version: 1.0.0+1

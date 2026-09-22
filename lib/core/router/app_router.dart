@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/service_locator.dart';
+import '../utils/cache_helper.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -28,6 +29,18 @@ class AppRouter {
 
   static final router = GoRouter(
     initialLocation: login,
+    redirect: (context, state) {
+      final token = CacheHelper.getToken();
+      final isLoggedIn = token != null && token.isNotEmpty;
+      final loc = state.matchedLocation;
+      final isAuthRoute = loc == login || loc == register;
+
+      // Not logged in -> force to login for protected routes.
+      if (!isLoggedIn && !isAuthRoute) return login;
+      // Logged in -> don't stay on login/register.
+      if (isLoggedIn && isAuthRoute) return home;
+      return null;
+    },
     routes: [
       GoRoute(
         path: login,

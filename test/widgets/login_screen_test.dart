@@ -68,8 +68,8 @@ void main() {
     testWidgets('renders the form fields and login button', (tester) async {
       await pumpLoginScreen(tester, FakeAuthRepo(const Right(user)));
 
-      expect(find.text('Welcome Back!'), findsOneWidget);
-      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Welcome Back To Route'), findsOneWidget);
+      expect(find.text('User Name'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
     });
@@ -79,10 +79,12 @@ void main() {
       final repo = FakeAuthRepo(const Right(user));
       await pumpLoginScreen(tester, repo);
 
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pump();
 
-      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Mail is required'), findsOneWidget);
       expect(find.text('Password is required'), findsOneWidget);
       expect(repo.loginCalls, 0);
     });
@@ -95,6 +97,8 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'gerges@example.com');
       await tester.enterText(find.byType(TextFormField).at(1), '123456');
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pump();
 
@@ -110,6 +114,8 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField).at(0), 'gerges@example.com');
       await tester.enterText(find.byType(TextFormField).at(1), '123456');
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Login'));
+      await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pumpAndSettle();
 

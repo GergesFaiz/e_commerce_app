@@ -44,6 +44,7 @@ import '../../features/cart/data/datasources/cart_remote_datasource.dart';
 import '../../features/cart/data/repos/cart_repo_impl.dart';
 import '../../features/cart/domain/repos/i_cart_repo.dart';
 import '../../features/cart/domain/usecases/add_to_cart_usecase.dart';
+import '../../features/cart/domain/usecases/clear_cart_usecase.dart';
 import '../../features/cart/domain/usecases/get_cart_usecase.dart';
 import '../../features/cart/domain/usecases/remove_from_cart_usecase.dart';
 import '../../features/cart/domain/usecases/update_cart_quantity_usecase.dart';
@@ -146,7 +147,8 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => GetCartUseCase(sl()));
   sl.registerLazySingleton(() => RemoveFromCartUseCase(sl()));
   sl.registerLazySingleton(() => UpdateCartQuantityUseCase(sl()));
-  sl.registerFactory(() => CartCubit(sl(), sl(), sl(), sl()));
+  sl.registerLazySingleton(() => ClearCartUseCase(sl()));
+  sl.registerFactory(() => CartCubit(sl(), sl(), sl(), sl(), sl()));
 
   // ── Wishlist ──
   sl.registerLazySingleton<WishlistRemoteDatasource>(

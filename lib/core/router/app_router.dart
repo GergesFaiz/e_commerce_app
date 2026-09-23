@@ -4,6 +4,7 @@ import '../di/service_locator.dart';
 import '../utils/cache_helper.dart';
 import '../../features/account/presentation/screens/account_screen.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/screens/password_recovery_screens.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -25,6 +26,9 @@ class AppRouter {
   static const String splash    = '/splash';
   static const String login     = '/login';
   static const String register  = '/register';
+  static const String forgot    = '/forgot';
+  static const String verify    = '/verify';
+  static const String resetPassword = '/reset';
   static const String home      = '/home';
   static const String categories = '/categories';
   static const String products  = '/products';
@@ -40,12 +44,24 @@ class AppRouter {
       final token = CacheHelper.getToken();
       final isLoggedIn = token != null && token.isNotEmpty;
       final loc = state.matchedLocation;
-      final isAuthRoute = loc == login || loc == register || loc == splash;
+      final isAuthRoute = loc == login ||
+          loc == register ||
+          loc == splash ||
+          loc == forgot ||
+          loc == verify ||
+          loc == resetPassword;
 
       // Not logged in -> force to login for protected routes.
       if (!isLoggedIn && !isAuthRoute) return login;
       // Logged in -> don't stay on login/register.
-      if (isLoggedIn && (loc == login || loc == register)) return home;
+      if (isLoggedIn &&
+          (loc == login ||
+              loc == register ||
+              loc == forgot ||
+              loc == verify ||
+              loc == resetPassword)) {
+        return home;
+      }
       return null;
     },
     routes: [
@@ -65,6 +81,29 @@ class AppRouter {
         builder: (_, __) => BlocProvider(
           create: (_) => sl<AuthCubit>(),
           child: const RegisterScreen(),
+        ),
+      ),
+      GoRoute(
+        path: forgot,
+        builder: (_, __) => BlocProvider(
+          create: (_) => sl<AuthCubit>(),
+          child: const ForgotPasswordScreen(),
+        ),
+      ),
+      GoRoute(
+        path: verify,
+        builder: (_, state) => BlocProvider(
+          create: (_) => sl<AuthCubit>(),
+          child: VerifyCodeScreen(
+              email: state.uri.queryParameters['email'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: resetPassword,
+        builder: (_, state) => BlocProvider(
+          create: (_) => sl<AuthCubit>(),
+          child: ResetPasswordScreen(
+              email: state.uri.queryParameters['email'] ?? ''),
         ),
       ),
       GoRoute(
@@ -142,7 +181,10 @@ class AppRouter {
       ),
       GoRoute(
         path: account,
-        builder: (_, __) => const AccountScreen(),
+        builder: (_, __) => BlocProvider(
+          create: (_) => sl<AuthCubit>(),
+          child: const AccountScreen(),
+        ),
       ),
     ],
   );

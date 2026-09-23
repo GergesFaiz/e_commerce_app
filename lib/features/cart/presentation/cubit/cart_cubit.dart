@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/base_usecase.dart';
 import '../../domain/usecases/add_to_cart_usecase.dart';
+import '../../domain/usecases/clear_cart_usecase.dart';
 import '../../domain/usecases/get_cart_usecase.dart';
 import '../../domain/usecases/remove_from_cart_usecase.dart';
 import '../../domain/usecases/update_cart_quantity_usecase.dart';
@@ -11,7 +12,8 @@ class CartCubit extends Cubit<CartState> {
   final GetCartUseCase _get;
   final RemoveFromCartUseCase _remove;
   final UpdateCartQuantityUseCase _update;
-  CartCubit(this._add, this._get, this._remove, this._update) : super(CartInitial());
+  final ClearCartUseCase _clear;
+  CartCubit(this._add, this._get, this._remove, this._update, this._clear) : super(CartInitial());
 
   Future<void> addToCart(String productId) async {
     final r = await _add(productId);
@@ -31,6 +33,12 @@ class CartCubit extends Cubit<CartState> {
 
   Future<void> updateQuantity(String itemId, int count) async {
     final r = await _update(UpdateParams(itemId, count));
+    r.fold((f) => emit(CartFailure(f.message)), (c) => emit(CartLoaded(c)));
+  }
+
+  Future<void> clear() async {
+    emit(CartLoading());
+    final r = await _clear(NoParams());
     r.fold((f) => emit(CartFailure(f.message)), (c) => emit(CartLoaded(c)));
   }
 }

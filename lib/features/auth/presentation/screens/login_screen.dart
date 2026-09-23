@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () => context.go(AppRouter.forgot),
                       child: Text('Forgot password',
                           style: GoogleFonts.poppins(
                               color: Colors.white, fontSize: 16)),

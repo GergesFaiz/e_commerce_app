@@ -36,6 +36,12 @@ class CartScreen extends StatelessWidget {
             onPressed: () => context.push(AppRouter.products),
           ),
           IconButton(
+            icon: const Icon(Icons.delete_sweep_outlined,
+                color: AppColors.primary),
+            tooltip: 'Clear cart',
+            onPressed: () => _confirmClear(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.shopping_cart_outlined,
                 color: AppColors.primary),
             onPressed: () {},
@@ -220,6 +226,30 @@ class CartScreen extends StatelessWidget {
           }
           return const SizedBox();
         },
+      ),
+    );
+  }
+
+  void _confirmClear(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear cart?'),
+        content: const Text('All items will be removed from your cart.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<CartCubit>().clear();
+            },
+            style: ElevatedButton.styleFrom(
+                minimumSize: const Size(120, 48)),
+            child: const Text('Clear'),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:e_commerce/core/error/failure.dart';
 import 'package:e_commerce/features/cart/domain/entities/cart_entity.dart';
 import 'package:e_commerce/features/cart/domain/repos/i_cart_repo.dart';
 import 'package:e_commerce/features/cart/domain/usecases/add_to_cart_usecase.dart';
+import 'package:e_commerce/features/cart/domain/usecases/clear_cart_usecase.dart';
 import 'package:e_commerce/features/cart/domain/usecases/get_cart_usecase.dart';
 import 'package:e_commerce/features/cart/domain/usecases/remove_from_cart_usecase.dart';
 import 'package:e_commerce/features/cart/domain/usecases/update_cart_quantity_usecase.dart';
@@ -22,6 +23,8 @@ class FakeCartRepo implements ICartRepo {
   Future<Either<Failure, CartEntity>> removeFromCart(String itemId) async => Right(cart);
   @override
   Future<Either<Failure, CartEntity>> updateQuantity(String itemId, int count) async => Right(cart);
+  @override
+  Future<Either<Failure, CartEntity>> clearCart() async => Right(cart);
 }
 
 void main() {
@@ -40,6 +43,7 @@ void main() {
       GetCartUseCase(repo),
       RemoveFromCartUseCase(repo),
       UpdateCartQuantityUseCase(repo),
+      ClearCartUseCase(repo),
     );
   }
 
@@ -58,5 +62,16 @@ void main() {
     final cubit = buildCubit();
     await cubit.addToCart('p1');
     expect(cubit.state, isA<CartItemAdded>());
+  });
+
+  test('clear emits loading then loaded', () async {
+    final cubit = buildCubit();
+    final expected = expectLater(
+      cubit.stream,
+      emitsInOrder([isA<CartLoading>(), isA<CartLoaded>()]),
+    );
+
+    await cubit.clear();
+    await expected;
   });
 }

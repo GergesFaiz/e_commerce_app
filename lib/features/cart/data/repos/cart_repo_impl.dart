@@ -21,4 +21,5 @@ class CartRepoImpl implements ICartRepo {
   @override Future<Either<Failure, CartEntity>> getCart() => _exec(() => _remote.getCart());
   @override Future<Either<Failure, CartEntity>> removeFromCart(String itemId) => _exec(() => _remote.removeFromCart(itemId));
   @override Future<Either<Failure, CartEntity>> updateQuantity(String itemId, int count) => _exec(() => _remote.updateQuantity(itemId, count));
+  @override Future<Either<Failure, CartEntity>> clearCart() => _exec(() => _remote.clearCart());
 }

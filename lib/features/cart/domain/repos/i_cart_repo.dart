@@ -7,4 +7,5 @@ abstract class ICartRepo {
   Future<Either<Failure, CartEntity>> getCart();
   Future<Either<Failure, CartEntity>> removeFromCart(String itemId);
   Future<Either<Failure, CartEntity>> updateQuantity(String itemId, int count);
+  Future<Either<Failure, CartEntity>> clearCart();
 }

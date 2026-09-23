@@ -7,6 +7,7 @@ abstract class CartRemoteDatasource {
   Future<CartResponseModel> getCart();
   Future<CartResponseModel> removeFromCart(String itemId);
   Future<CartResponseModel> updateQuantity(String itemId, int count);
+  Future<CartResponseModel> clearCart();
 }
 
 class CartRemoteDatasourceImpl implements CartRemoteDatasource {
@@ -19,4 +20,5 @@ class CartRemoteDatasourceImpl implements CartRemoteDatasource {
   @override Future<CartResponseModel> getCart() => _api.getCart(_token);
   @override Future<CartResponseModel> removeFromCart(String itemId) => _api.removeFromCart(itemId, _token);
   @override Future<CartResponseModel> updateQuantity(String itemId, int count) => _api.updateCartQuantity(itemId, {'count': count}, _token);
+  @override Future<CartResponseModel> clearCart() => _api.clearCart(_token);
 }

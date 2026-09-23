@@ -27,13 +27,16 @@ class RouteLogo extends StatelessWidget {
 
 class RouteSearchBar extends StatelessWidget {
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final VoidCallback? onSubmittedTap;
-  const RouteSearchBar({super.key, this.onChanged, this.onSubmittedTap});
+  const RouteSearchBar(
+      {super.key, this.onChanged, this.onSubmitted, this.onSubmittedTap});
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
       decoration: InputDecoration(
         hintText: 'what do you search for?',
         prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 28),

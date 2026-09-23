@@ -320,10 +320,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         height: 56,
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            await sl<CartCubit>()
-                                .addToCart(p.id);
+                            final cart = sl<CartCubit>();
+                            for (var i = 0; i < _qty; i++) {
+                              await cart.addToCart(p.id);
+                            }
                             Fluttertoast.showToast(
-                                msg: 'Added to cart');
+                                msg: _qty > 1
+                                    ? 'Added $_qty items to cart'
+                                    : 'Added to cart');
                           },
                           icon: const Icon(
                               Icons.shopping_cart_outlined),

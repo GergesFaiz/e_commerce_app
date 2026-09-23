@@ -109,20 +109,6 @@ class WishlistScreen extends StatelessWidget {
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
                                             color: AppColors.ink)),
-                                    const SizedBox(height: 4),
-                                    const Row(
-                                      children: [
-                                        CircleAvatar(
-                                            radius: 6,
-                                            backgroundColor:
-                                                AppColors.ink),
-                                        SizedBox(width: 4),
-                                        Text('Black color',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.ink)),
-                                      ],
-                                    ),
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [

@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: RouteSearchBar(
-                  onChanged: (q) {
+                  onSubmitted: (q) {
                     if (q.trim().isNotEmpty) {
                       context.go('${AppRouter.products}?q=${Uri.encodeComponent(q.trim())}');
                     }

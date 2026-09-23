@@ -11,6 +11,7 @@ import '../../../../core/widgets/custom_error_widget.dart';
 import '../../../../core/widgets/custom_loading.dart';
 import '../../../../core/widgets/route_widgets.dart';
 import '../../../cart/presentation/cubit/cart_cubit.dart';
+import '../../../reviews/presentation/cubit/reviews_cubit.dart';
 import '../../../wishlist/presentation/cubit/wishlist_cubit.dart';
 import '../../domain/entities/product_entity.dart';
 import '../cubit/products_cubit.dart';
@@ -282,6 +283,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      _ReviewsSection(productId: p.id),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -338,8 +341,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  Widget _description(ProductEntity p) {
-    const max = 120;
+  Widget _description(ProductEntity p) {    const max = 120;
     final text = p.description;
     if (text.length <= max) {
       return Text(text,
@@ -361,6 +363,107 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   fontWeight: FontWeight.w600)),
         ),
       ],
+    );
+  }
+}
+
+class _ReviewsSection extends StatefulWidget {
+  final String productId;
+  const _ReviewsSection({required this.productId});
+
+  @override
+  State<_ReviewsSection> createState() => _ReviewsSectionState();
+}
+
+class _ReviewsSectionState extends State<_ReviewsSection> {
+  final _ctrl = TextEditingController();
+  double _rating = 5;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<ReviewsCubit, ReviewsState>(
+      listener: (context, state) {
+        if (state is ReviewsLoaded && state.notice != null) {
+          Fluttertoast.showToast(msg: state.notice!);
+          _ctrl.clear();
+        }
+        if (state is ReviewsFailure) {
+          Fluttertoast.showToast(msg: state.message);
+        }
+      },
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('"'"'Ratings & Reviews'"'"',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.ink)),
+            const SizedBox(height: 8),
+            if (state is ReviewsLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (state is ReviewsLoaded && state.reviews.isEmpty)
+              const Text('"'"'No reviews yet. Be the first to review!'"'"',
+                  style: TextStyle(color: AppColors.hint))
+            else if (state is ReviewsLoaded)
+              ...state.reviews.take(5).map((r) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(r.userName.isEmpty ? '"'"'User'"'"' : r.userName,
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(r.text),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(r.rating.toStringAsFixed(0)),
+                          const Icon(Icons.star,
+                              size: 16, color: AppColors.star),
+                        ],
+                      ),
+                    ),
+                  )),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    decoration: const InputDecoration(
+                        hintText: '"'"'Write a review...'"'"'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                DropdownButton<double>(
+                  value: _rating,
+                  items: [5, 4, 3, 2, 1]
+                      .map((v) => DropdownMenuItem(
+                          value: v.toDouble(), child: Text('"'"'$v'"'"')))
+                      .toList(),
+                  onChanged: (v) =>
+                      setState(() => _rating = v ?? 5),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send,
+                      color: AppColors.primary),
+                  onPressed: () => context
+                      .read<ReviewsCubit>()
+                      .addReview(
+                          productId: widget.productId,
+                          text: _ctrl.text,
+                          rating: _rating),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

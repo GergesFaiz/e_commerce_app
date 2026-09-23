@@ -13,6 +13,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/products/presentation/cubit/products_cubit.dart';
 import '../../features/products/presentation/screens/products_screen.dart';
 import '../../features/products/presentation/screens/product_details_screen.dart';
+import '../../features/reviews/presentation/cubit/reviews_cubit.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/wishlist/presentation/cubit/wishlist_cubit.dart';
@@ -102,11 +103,21 @@ class AppRouter {
       ),
       GoRoute(
         path: product,
-        builder: (_, state) => BlocProvider(
-          create: (_) => sl<ProductsCubit>()
-            ..getProductDetails(state.pathParameters['id']!),
-          child: ProductDetailsScreen(id: state.pathParameters['id']!),
-        ),
+        builder: (_, state) {
+          final id = state.pathParameters['id']!;
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) =>
+                    sl<ProductsCubit>()..getProductDetails(id),
+              ),
+              BlocProvider(
+                create: (_) => sl<ReviewsCubit>()..getReviews(id),
+              ),
+            ],
+            child: ProductDetailsScreen(id: id),
+          );
+        },
       ),
       GoRoute(
         path: cart,

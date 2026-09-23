@@ -24,7 +24,10 @@ import '../../features/home/domain/usecases/get_brands_usecase.dart';
 import '../../features/home/domain/usecases/get_subcategories_usecase.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
 
-// Products
+// Reviews
+import '../../features/reviews/data/datasources/reviews_remote_datasource.dart';
+import '../../features/reviews/domain/reviews_repository.dart';
+import '../../features/reviews/presentation/cubit/reviews_cubit.dart';
 import '../../features/products/data/datasources/products_remote_datasource.dart';
 import '../../features/products/data/repos/products_repo_impl.dart';
 import '../../features/products/domain/repos/i_products_repo.dart';
@@ -106,6 +109,17 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => GetProductsUseCase(sl()));
   sl.registerLazySingleton(() => GetProductDetailsUseCase(sl()));
   sl.registerFactory(() => ProductsCubit(sl(), sl()));
+
+  // ── Reviews ──
+  sl.registerLazySingleton<ReviewsRemoteDatasource>(
+    () => ReviewsRemoteDatasourceImpl(sl()),
+  );
+  sl.registerLazySingleton<IReviewsRepo>(
+    () => ReviewsRepoImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton(() => GetReviewsUseCase(sl()));
+  sl.registerLazySingleton(() => AddReviewUseCase(sl()));
+  sl.registerFactory(() => ReviewsCubit(sl(), sl()));
 
   // ── Cart ──
   sl.registerLazySingleton<CartRemoteDatasource>(

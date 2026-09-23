@@ -28,4 +28,13 @@ class HomeRepoImpl implements IHomeRepo {
       return Right(res.data.map((e) => e.toEntity()).toList());
     } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
   }
+
+  @override
+  Future<Either<Failure, List<CategoryEntity>>> getSubCategories(String categoryId) async {
+    if (!await _network.isConnected) return const Left(NetworkFailure());
+    try {
+      final res = await _remote.getSubCategories(categoryId);
+      return Right(res.data.map((e) => e.toEntity()).toList());
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+  }
 }

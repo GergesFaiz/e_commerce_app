@@ -20,6 +20,7 @@ import '../../features/home/data/repos/home_repo_impl.dart';
 import '../../features/home/domain/repos/i_home_repo.dart';
 import '../../features/home/domain/usecases/get_categories_usecase.dart';
 import '../../features/home/domain/usecases/get_brands_usecase.dart';
+import '../../features/home/domain/usecases/get_subcategories_usecase.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
 
 // Products
@@ -86,7 +87,8 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<IHomeRepo>(() => HomeRepoImpl(sl(), sl()));
   sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
   sl.registerLazySingleton(() => GetBrandsUseCase(sl()));
-  sl.registerFactory(() => HomeCubit(sl(), sl()));
+  sl.registerLazySingleton(() => GetSubCategoriesUseCase(sl()));
+  sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
 
   // ── Products ──
   sl.registerLazySingleton<ProductsRemoteDatasource>(

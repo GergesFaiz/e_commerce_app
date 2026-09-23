@@ -182,7 +182,7 @@ void _onNav(BuildContext context, int i) {
       context.go(AppRouter.home);
       break;
     case 1:
-      context.go(AppRouter.products);
+      context.go(AppRouter.categories);
       break;
     case 2:
       context.go(AppRouter.wishlist);

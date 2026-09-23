@@ -7,6 +7,7 @@ import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
+import '../../features/home/presentation/screens/categories_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/products/presentation/cubit/products_cubit.dart';
 import '../../features/products/presentation/screens/products_screen.dart';
@@ -22,6 +23,7 @@ class AppRouter {
   static const String login     = '/login';
   static const String register  = '/register';
   static const String home      = '/home';
+  static const String categories = '/categories';
   static const String products  = '/products';
   static const String product   = '/product/:id';
   static const String cart      = '/cart';
@@ -66,6 +68,13 @@ class AppRouter {
             BlocProvider(create: (_) => sl<ProductsCubit>()..getProducts()),
           ],
           child: const HomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: categories,
+        builder: (_, __) => BlocProvider(
+          create: (_) => sl<HomeCubit>()..getHomeData(),
+          child: const CategoriesScreen(),
         ),
       ),
       GoRoute(

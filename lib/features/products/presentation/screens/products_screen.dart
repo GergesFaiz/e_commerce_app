@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/widgets/custom_loading.dart';
+
+import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/custom_loading.dart';
+import '../../../../core/widgets/route_widgets.dart';
 import '../cubit/products_cubit.dart';
 import '../cubit/products_state.dart';
+import '../widgets/product_card.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  final String? initialQuery;
+  const ProductsScreen({super.key, this.initialQuery});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  final _searchController = TextEditingController();
+  late final TextEditingController _searchController;
   final _scrollController = ScrollController();
-  bool _showSearch = false;
 
   @override
   void initState() {
     super.initState();
+    _searchController =
+        TextEditingController(text: widget.initialQuery ?? '');
     _scrollController.addListener(_onScroll);
   }
 
@@ -46,240 +50,110 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _showSearch
-            ? TextField(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Row(
+                children: [
+                  const RouteLogo(),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined,
+                        color: Color(0xFF004182), size: 30),
+                    onPressed: () => context.push(AppRouter.cart),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
                 controller: _searchController,
-                autofocus: true,
-                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  hintText: 'Search products...',
-                  hintStyle: TextStyle(color: Colors.white70),
-                  border: InputBorder.none,
+                  hintText: 'what do you search for?',
+                  prefixIcon: Icon(Icons.search,
+                      color: Color(0xFF004182), size: 28),
+                ).copyWith(
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF004182))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide:
+                          const BorderSide(color: Color(0xFF004182))),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF004182), width: 1.5)),
                 ),
-                onChanged: (v) => context.read<ProductsCubit>().setSearchQuery(v),
-              )
-            : const Text('Explore Products'),
-        actions: [
-          IconButton(
-            icon: Icon(_showSearch ? Icons.close : Icons.search, color: Colors.white),
-            onPressed: () {
-              setState(() {
-                _showSearch = !_showSearch;
-                if (!_showSearch) {
-                  _searchController.clear();
-                  context.read<ProductsCubit>().setSearchQuery('');
-                }
-              });
-            },
-          ),
-          BlocBuilder<ProductsCubit, ProductsState>(
-            builder: (context, state) {
-              final asc = state is ProductsLoaded ? state.sortByPriceAsc : null;
-              return IconButton(
-                tooltip: 'Sort by price',
-                icon: Icon(
-                  asc == null
-                      ? Icons.sort
-                      : asc
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                  color: Colors.white,
-                ),
-                onPressed: () => context.read<ProductsCubit>().toggleSortByPrice(),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            onPressed: () => context.push('/cart'),
-          ),
-        ],
-      ),
-      body: BlocBuilder<ProductsCubit, ProductsState>(
-        builder: (context, state) {
-          if (state is ProductsLoading) return const CustomLoading();
-          if (state is ProductsFailure) {
-            return CustomErrorWidget(
-              message: state.message,
-              onRetry: () => context.read<ProductsCubit>().getProducts(),
-            );
-          }
-          if (state is ProductsLoaded) {
-            if (state.products.isEmpty) {
-              return RefreshIndicator(
-                onRefresh: () => context.read<ProductsCubit>().getProducts(),
-                color: AppColors.primary,
-                child: ListView(
-                  children: [
-                    const SizedBox(height: 120),
-                    const Icon(Icons.search_off, size: 64, color: AppColors.textSecondary),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Text(
-                        state.query.isEmpty
-                            ? 'No products found.'
-                            : 'No results for "${state.query}".',
-                        style: const TextStyle(color: AppColors.textSecondary),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-            return RefreshIndicator(
-              onRefresh: () => context.read<ProductsCubit>().getProducts(),
-              color: AppColors.primary,
-              child: GridView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.68,
-                ),
-                itemCount: state.products.length + (state.hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= state.products.length) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
+                onChanged: (v) =>
+                    context.read<ProductsCubit>().setSearchQuery(v),
+              ),
+            ),
+            Expanded(
+              child: BlocBuilder<ProductsCubit, ProductsState>(
+                builder: (context, state) {
+                  if (state is ProductsLoading) {
+                    return const CustomLoading();
+                  }
+                  if (state is ProductsFailure) {
+                    return CustomErrorWidget(
+                      message: state.message,
+                      onRetry: () =>
+                          context.read<ProductsCubit>().getProducts(),
+                    );
+                  }
+                  if (state is ProductsLoaded) {
+                    if (state.products.isEmpty) {
+                      return const Center(
+                          child: Text('No products found.'));
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () =>
+                          context.read<ProductsCubit>().getProducts(),
+                      color: const Color(0xFF004182),
+                      child: GridView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.62,
+                        ),
+                        itemCount: state.products.length +
+                            (state.hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= state.products.length) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          return ProductCard(
+                              product: state.products[index]);
+                        },
                       ),
                     );
                   }
-                  final product = state.products[index];
-                  return _ProductCard(product: product);
+                  return const SizedBox();
                 },
               ),
-            );
-          }
-          return const SizedBox();
-        },
+            ),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _ProductCard extends StatelessWidget {
-  final dynamic product;
-  const _ProductCard({required this.product});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/product/${product.id}'),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: CachedNetworkImage(
-                    imageUrl: product.imageCover,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: Colors.grey[200]),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.9),
-                    radius: 16,
-                    child: IconButton(
-                      icon: const Icon(Icons.favorite_border, size: 16, color: AppColors.textSecondary),
-                      onPressed: () {},
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.categoryName,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          product.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'EGP ${product.price}',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            if (product.priceAfterDiscount != null)
-                              Text(
-                                'EGP ${product.priceAfterDiscount}',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  decoration: TextDecoration.lineThrough,
-                                  fontSize: 12,
-                                ),
-                              ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.add, color: AppColors.primary, size: 20),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: RouteBottomNav(
+        currentIndex: 1,
+        onTap: (i) {
+          if (i == 0) context.go(AppRouter.home);
+          if (i == 1) context.go(AppRouter.products);
+          if (i == 2) context.go(AppRouter.wishlist);
+          if (i == 3) context.go(AppRouter.account);
+        },
       ),
     );
   }

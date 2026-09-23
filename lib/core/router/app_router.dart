@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/service_locator.dart';
 import '../utils/cache_helper.dart';
+import '../../features/account/presentation/screens/account_screen.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -26,6 +27,7 @@ class AppRouter {
   static const String cart      = '/cart';
   static const String wishlist  = '/wishlist';
   static const String orders    = '/orders';
+  static const String account   = '/account';
 
   static final router = GoRouter(
     initialLocation: login,
@@ -58,8 +60,11 @@ class AppRouter {
       ),
       GoRoute(
         path: home,
-        builder: (_, __) => BlocProvider(
-          create: (_) => sl<HomeCubit>()..getHomeData(),
+        builder: (_, __) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<HomeCubit>()..getHomeData()),
+            BlocProvider(create: (_) => sl<ProductsCubit>()..getProducts()),
+          ],
           child: const HomeScreen(),
         ),
       ),
@@ -67,9 +72,16 @@ class AppRouter {
         path: products,
         builder: (_, state) {
           final categoryId = state.uri.queryParameters['categoryId'];
+          final q = state.uri.queryParameters['q'];
           return BlocProvider(
-            create: (_) => sl<ProductsCubit>()..getProducts(categoryId: categoryId),
-            child: const ProductsScreen(),
+            create: (_) {
+              final cubit = sl<ProductsCubit>();
+              cubit.getProducts(categoryId: categoryId).then((_) {
+                if (q != null && q.isNotEmpty) cubit.setSearchQuery(q);
+              });
+              return cubit;
+            },
+            child: ProductsScreen(initialQuery: q),
           );
         },
       ),
@@ -101,6 +113,10 @@ class AppRouter {
           create: (_) => sl<OrdersCubit>()..getOrders(),
           child: const OrdersScreen(),
         ),
+      ),
+      GoRoute(
+        path: account,
+        builder: (_, __) => const AccountScreen(),
       ),
     ],
   );

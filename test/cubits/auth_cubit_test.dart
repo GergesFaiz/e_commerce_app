@@ -4,6 +4,7 @@ import 'package:e_commerce/core/utils/cache_helper.dart';
 import 'package:e_commerce/features/auth/domain/entities/user_entity.dart';
 import 'package:e_commerce/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:e_commerce/features/auth/domain/usecases/login_usecase.dart';
+import 'package:e_commerce/features/auth/domain/usecases/profile_usecases.dart';
 import 'package:e_commerce/features/auth/domain/usecases/register_usecase.dart';
 import 'package:e_commerce/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_commerce/features/auth/presentation/cubit/auth_state.dart';
@@ -31,6 +32,11 @@ void main() {
       LoginUseCase(repo),
       RegisterUseCase(repo),
       ForgotPasswordUseCase(repo),
+      VerifyResetCodeUseCase(repo),
+      ResetPasswordUseCase(repo),
+      ChangePasswordUseCase(repo),
+      UpdateProfileUseCase(repo),
+      VerifyTokenUseCase(repo),
     );
   }
 
@@ -114,8 +120,51 @@ void main() {
     });
   });
 
-  group('logout', () {
-    test('clears cached credentials and returns to AuthInitial', () async {
+  group('reset flow', () {
+    test('verifyResetCode rejects an empty code', () async {
+      final cubit = buildCubit(const Right(user));
+
+      await cubit.verifyResetCode('   ');
+
+      expect(cubit.state, isA<AuthFailure>());
+    });
+
+    test('verifyResetCode emits message on success', () async {
+      final cubit = buildCubit(const Right(user));
+      final expected = expectLater(
+        cubit.stream,
+        emitsInOrder([isA<AuthLoading>(), isA<AuthMessage>()]),
+      );
+
+      await cubit.verifyResetCode('123456');
+      await expected;
+    });
+
+    test('resetPassword rejects short passwords', () async {
+      final cubit = buildCubit(const Right(user));
+
+      await cubit.resetPassword(email: 'a@b.com', newPassword: '123');
+
+      expect(cubit.state, isA<AuthFailure>());
+    });
+
+    test('register persists token and user id', () async {
+      final cubit = buildCubit(const Right(user));
+
+      await cubit.register(
+        name: 'Gerges',
+        email: 'gerges@example.com',
+        password: '123456',
+        phone: '01000000000',
+      );
+      await pumpEventQueue();
+
+      expect(CacheHelper.getToken(), 'jwt-token');
+      expect(CacheHelper.getUserId(), 'u1');
+    });
+  });
+
+  group('logout', () {    test('clears cached credentials and returns to AuthInitial', () async {
       await CacheHelper.saveToken('jwt-token');
       expect(CacheHelper.getToken(), 'jwt-token');
 

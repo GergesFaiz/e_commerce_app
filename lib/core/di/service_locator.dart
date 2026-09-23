@@ -12,6 +12,7 @@ import '../../features/auth/domain/repos/i_auth_repo.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/domain/usecases/forgot_password_usecase.dart';
+import '../../features/auth/domain/usecases/profile_usecases.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 
 // Home
@@ -78,7 +79,12 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
-  sl.registerFactory(() => AuthCubit(sl(), sl(), sl()));
+  sl.registerLazySingleton(() => VerifyResetCodeUseCase(sl()));
+  sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyTokenUseCase(sl()));
+  sl.registerFactory(() => AuthCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
 
   // ── Home ──
   sl.registerLazySingleton<HomeRemoteDatasource>(

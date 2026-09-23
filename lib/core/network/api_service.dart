@@ -24,18 +24,53 @@ abstract class ApiService {
 // بعد
   @POST('auth/forgotPasswords')
   Future<HttpResponse<dynamic>> forgotPassword(@Body() Map<String, dynamic> body);
-  @PUT('auth/updateMyPassword')
-  Future<UserModel> updatePassword(
+
+  @POST('auth/verifyResetCode')
+  Future<HttpResponse<dynamic>> verifyResetCode(@Body() Map<String, dynamic> body);
+
+  @PUT('auth/resetPassword')
+  Future<HttpResponse<dynamic>> resetPassword(@Body() Map<String, dynamic> body);
+
+  @GET('auth/verifyToken')
+  Future<HttpResponse<dynamic>> verifyToken(@Header('token') String token);
+
+  @PUT('users/changeMyPassword')
+  Future<HttpResponse<dynamic>> updatePassword(
     @Body() Map<String, dynamic> body,
     @Header('token') String token,
   );
 
-  // ── Products ──────────────────────────────────────────────────────────────
+  @PUT('users/updateMe/')
+  Future<HttpResponse<dynamic>> updateMe(
+    @Body() Map<String, dynamic> body,
+    @Header('token') String token,
+  );
+
+  // ── Products (server search/sort/filter/pagination per docs) ──────────────
   @GET('products')
-  Future<ProductsResponseModel> getProducts();
+  Future<ProductsResponseModel> getProducts({
+    @Query('keyword') String? keyword,
+    @Query('sort') String? sort,
+    @Query('page') int? page,
+    @Query('limit') int? limit,
+    @Query('category[in]') String? categoryId,
+    @Query('brand') String? brandId,
+    @Query('price[gte]') num? minPrice,
+    @Query('price[lte]') num? maxPrice,
+  });
 
   @GET('products/{id}')
   Future<ProductDetailsResponseModel> getProductById(@Path('id') String id);
+
+  @GET('products/{id}/reviews')
+  Future<HttpResponse<dynamic>> getReviews(@Path('id') String id);
+
+  @POST('products/{id}/reviews')
+  Future<HttpResponse<dynamic>> addReview(
+    @Path('id') String id,
+    @Body() Map<String, dynamic> body,
+    @Header('token') String token,
+  );
 
   // ── Categories ────────────────────────────────────────────────────────────
   @GET('categories')
@@ -64,6 +99,9 @@ abstract class ApiService {
     @Header('token') String token,
   );
 
+  @DELETE('cart')
+  Future<CartResponseModel> clearCart(@Header('token') String token);
+
   @PUT('cart/{id}')
   Future<CartResponseModel> updateCartQuantity(
     @Path('id') String id,
@@ -83,6 +121,22 @@ abstract class ApiService {
 
   @DELETE('wishlist/{id}')
   Future<WishlistResponseModel> removeFromWishlist(
+    @Path('id') String id,
+    @Header('token') String token,
+  );
+
+  // ── Addresses ─────────────────────────────────────────────────────────────
+  @GET('addresses')
+  Future<HttpResponse<dynamic>> getAddresses(@Header('token') String token);
+
+  @POST('addresses')
+  Future<HttpResponse<dynamic>> addAddress(
+    @Body() Map<String, dynamic> body,
+    @Header('token') String token,
+  );
+
+  @DELETE('addresses/{id}')
+  Future<HttpResponse<dynamic>> deleteAddress(
     @Path('id') String id,
     @Header('token') String token,
   );

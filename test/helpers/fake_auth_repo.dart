@@ -46,4 +46,29 @@ class FakeAuthRepo implements IAuthRepo {
   Future<Either<Failure, String>> forgotPassword(String email) async {
     return const Right('Reset instructions sent');
   }
+
+  @override
+  Future<Either<Failure, String>> verifyResetCode(String code) async {
+    return const Right('Code verified');
+  }
+
+  @override
+  Future<Either<Failure, String>> resetPassword({required String email, required String newPassword}) async {
+    return const Right('Password reset successfully');
+  }
+
+  @override
+  Future<Either<Failure, String>> changeMyPassword({required String current, required String password}) async {
+    return const Right('Password updated');
+  }
+
+  @override
+  Future<Either<Failure, String>> updateMe({required String name, required String email, required String phone}) async {
+    return const Right('Profile updated');
+  }
+
+  @override
+  Future<Either<Failure, bool>> verifyToken(String token) async {
+    return const Right(true);
+  }
 }

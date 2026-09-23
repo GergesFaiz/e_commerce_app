@@ -43,4 +43,33 @@ class AuthRepoImpl implements IAuthRepo {
       return Left(ServerFailure.fromDioException(e));
     }
   }
+
+  Future<Either<Failure, T>> _guarded<T>(Future<T> Function() call) async {
+    if (!await _network.isConnected) return const Left(NetworkFailure());
+    try {
+      return Right(await call());
+    } on DioException catch (e) {
+      return Left(ServerFailure.fromDioException(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> verifyResetCode(String code) =>
+      _guarded(() => _remote.verifyResetCode(code));
+
+  @override
+  Future<Either<Failure, String>> resetPassword({required String email, required String newPassword}) =>
+      _guarded(() => _remote.resetPassword(email: email, newPassword: newPassword));
+
+  @override
+  Future<Either<Failure, String>> changeMyPassword({required String current, required String password}) =>
+      _guarded(() => _remote.changeMyPassword(current: current, password: password));
+
+  @override
+  Future<Either<Failure, String>> updateMe({required String name, required String email, required String phone}) =>
+      _guarded(() => _remote.updateMe(name: name, email: email, phone: phone));
+
+  @override
+  Future<Either<Failure, bool>> verifyToken(String token) =>
+      _guarded(() => _remote.verifyToken(token));
 }

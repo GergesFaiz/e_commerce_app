@@ -7,6 +7,7 @@ import 'package:e_commerce/core/utils/cache_helper.dart';
 import 'package:e_commerce/features/auth/domain/entities/user_entity.dart';
 import 'package:e_commerce/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:e_commerce/features/auth/domain/usecases/login_usecase.dart';
+import 'package:e_commerce/features/auth/domain/usecases/profile_usecases.dart';
 import 'package:e_commerce/features/auth/domain/usecases/register_usecase.dart';
 import 'package:e_commerce/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:e_commerce/features/auth/presentation/screens/login_screen.dart';
@@ -39,6 +40,11 @@ void main() {
       LoginUseCase(repo),
       RegisterUseCase(repo),
       ForgotPasswordUseCase(repo),
+      VerifyResetCodeUseCase(repo),
+      ResetPasswordUseCase(repo),
+      ChangePasswordUseCase(repo),
+      UpdateProfileUseCase(repo),
+      VerifyTokenUseCase(repo),
     );
 
     final router = GoRouter(

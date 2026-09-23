@@ -150,7 +150,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         currentIndex: 1,
         onTap: (i) {
           if (i == 0) context.go(AppRouter.home);
-          if (i == 1) context.go(AppRouter.products);
+          if (i == 1) context.go(AppRouter.categories);
           if (i == 2) context.go(AppRouter.wishlist);
           if (i == 3) context.go(AppRouter.account);
         },

@@ -4,6 +4,7 @@ import '../di/service_locator.dart';
 import '../utils/cache_helper.dart';
 import '../../features/account/presentation/screens/account_screen.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/home/presentation/cubit/home_cubit.dart';
@@ -20,6 +21,7 @@ import '../../features/orders/presentation/cubit/orders_cubit.dart';
 import '../../features/orders/presentation/screens/orders_screen.dart';
 
 class AppRouter {
+  static const String splash    = '/splash';
   static const String login     = '/login';
   static const String register  = '/register';
   static const String home      = '/home';
@@ -32,20 +34,24 @@ class AppRouter {
   static const String account   = '/account';
 
   static final router = GoRouter(
-    initialLocation: login,
+    initialLocation: splash,
     redirect: (context, state) {
       final token = CacheHelper.getToken();
       final isLoggedIn = token != null && token.isNotEmpty;
       final loc = state.matchedLocation;
-      final isAuthRoute = loc == login || loc == register;
+      final isAuthRoute = loc == login || loc == register || loc == splash;
 
       // Not logged in -> force to login for protected routes.
       if (!isLoggedIn && !isAuthRoute) return login;
       // Logged in -> don't stay on login/register.
-      if (isLoggedIn && isAuthRoute) return home;
+      if (isLoggedIn && (loc == login || loc == register)) return home;
       return null;
     },
     routes: [
+      GoRoute(
+        path: splash,
+        builder: (_, __) => const SplashScreen(),
+      ),
       GoRoute(
         path: login,
         builder: (_, __) => BlocProvider(

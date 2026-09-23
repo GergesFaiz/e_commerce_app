@@ -1,67 +1,366 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../../../core/widgets/custom_loading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
+import '../../../../core/widgets/custom_loading.dart';
+import '../../../../core/widgets/route_widgets.dart';
+import '../../../cart/presentation/cubit/cart_cubit.dart';
+import '../../../wishlist/presentation/cubit/wishlist_cubit.dart';
+import '../../domain/entities/product_entity.dart';
 import '../cubit/products_cubit.dart';
 import '../cubit/products_state.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
+class ProductDetailsScreen extends StatefulWidget {
   final String id;
   const ProductDetailsScreen({super.key, required this.id});
 
   @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  int _qty = 1;
+  int _page = 0;
+  int _size = 40;
+  int _color = 1;
+  bool _expanded = false;
+  final _pageCtrl = PageController();
+
+  static const _sizes = [38, 39, 40, 41, 42];
+  static const _colors = [
+    Color(0xFF2F2929),
+    Color(0xFFBC3018),
+    Color(0xFF0066FF),
+    Color(0xFF02B935),
+    Color(0xFFFF6B6B),
+  ];
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Details'), backgroundColor: const Color(0xFF3BB77E)),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('Product Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: AppColors.primary),
+            onPressed: () => context.push(AppRouter.products),
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined,
+                color: AppColors.primary),
+            onPressed: () => context.push(AppRouter.cart),
+          ),
+        ],
+      ),
       body: BlocBuilder<ProductsCubit, ProductsState>(
         builder: (ctx, state) {
           if (state is ProductsLoading) return const CustomLoading();
-          if (state is ProductsFailure) return CustomErrorWidget(message: state.message, onRetry: () => ctx.read<ProductsCubit>().getProductDetails(id));
-          if (state is ProductDetailsLoaded) {
-            final p = state.product;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CachedNetworkImage(imageUrl: p.imageCover, height: 300, width: double.infinity, fit: BoxFit.cover),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
+          if (state is ProductsFailure) {
+            return CustomErrorWidget(
+                message: state.message,
+                onRetry: () => ctx
+                    .read<ProductsCubit>()
+                    .getProductDetails(widget.id));
+          }
+          if (state is! ProductDetailsLoaded) return const SizedBox();
+          final p = state.product;
+          final images =
+              p.images.isEmpty ? [p.imageCover] : p.images;
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          border:
+                              Border.all(color: AppColors.fieldBorder),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: SizedBox(
+                                height: 300,
+                                child: PageView.builder(
+                                  controller: _pageCtrl,
+                                  itemCount: images.length,
+                                  onPageChanged: (i) =>
+                                      setState(() => _page = i),
+                                  itemBuilder: (_, i) =>
+                                      CachedNetworkImage(
+                                    imageUrl: images[i],
+                                    height: 300,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) =>
+                                        const Icon(Icons.image,
+                                            size: 80,
+                                            color: AppColors.hint),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: HeartButton(
+                                filled: false,
+                                onTap: () async {
+                                  await sl<WishlistCubit>()
+                                      .toggleWishlist(p.id);
+                                  Fluttertoast.showToast(
+                                      msg: 'Added to wishlist');
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          images.length,
+                          (i) => Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 3),
+                            width: i == _page ? 24 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: i == _page
+                                  ? AppColors.primary
+                                  : AppColors.fieldBorder,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(p.title,
+                                style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.ink)),
+                          ),
+                          Text(
+                            'EGP ${p.price.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.ink),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: AppColors.fieldBorder),
+                            ),
+                            child: Text('${p.sold} Sold',
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.ink)),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.star,
+                              size: 18, color: AppColors.star),
+                          Text(
+                            ' ${p.ratingsAverage} (${p.ratingsQuantity})',
+                            style: const TextStyle(
+                                fontSize: 13, color: AppColors.ink),
+                          ),
+                          const Spacer(),
+                          QtyStepper(
+                            qty: _qty,
+                            onMinus: () => setState(
+                                () => _qty = _qty > 1 ? _qty - 1 : 1),
+                            onPlus: () =>
+                                setState(() => _qty++),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Description',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink)),
+                      const SizedBox(height: 4),
+                      _description(p),
+                      const SizedBox(height: 12),
+                      const Text('Size',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: _sizes
+                            .map((s) => GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _size = s),
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    margin: const EdgeInsets.only(
+                                        right: 12),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _size == s
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text('$s',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: _size == s
+                                                ? Colors.white
+                                                : AppColors.ink)),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text('Color',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: List.generate(
+                          _colors.length,
+                          (i) => GestureDetector(
+                            onTap: () =>
+                                setState(() => _color = i),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _colors[i],
+                              ),
+                              child: _color == i
+                                  ? const Icon(Icons.check,
+                                      color: Colors.white, size: 22)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                      top: BorderSide(color: AppColors.fieldBorder)),
+                ),
+                child: Row(
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Row(children: [
-                          Text('EGP ${p.price}', style: const TextStyle(fontSize: 22, color: Color(0xFF3BB77E), fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          const Icon(Icons.star, color: Colors.amber),
-                          Text(' ${p.ratingsAverage} (${p.ratingsQuantity})'),
-                        ]),
-                        const SizedBox(height: 16),
-                        const Text('Description', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Text(p.description),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.shopping_cart),
-                            label: const Text('Add to Cart'),
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3BB77E), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
-                          ),
+                        const Text('Total price',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.hint)),
+                        Text(
+                          'EGP ${(p.price * _qty).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.ink),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            await sl<CartCubit>()
+                                .addToCart(p.id);
+                            Fluttertoast.showToast(
+                                msg: 'Added to cart');
+                          },
+                          icon: const Icon(
+                              Icons.shopping_cart_outlined),
+                          label: const Text('Add to cart'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            );
-          }
-          return const SizedBox();
+            ],
+          );
         },
       ),
+    );
+  }
+
+  Widget _description(ProductEntity p) {
+    const max = 120;
+    final text = p.description;
+    if (text.length <= max) {
+      return Text(text,
+          style:
+              const TextStyle(fontSize: 14, color: AppColors.ink));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(_expanded ? text : '${text.substring(0, max)}...',
+            style:
+                const TextStyle(fontSize: 14, color: AppColors.ink)),
+        GestureDetector(
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Text(_expanded ? 'Show Less' : 'Read More',
+              style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ],
     );
   }
 }

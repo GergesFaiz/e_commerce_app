@@ -10,6 +10,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
 import '../../../../core/widgets/custom_loading.dart';
 import '../../../../core/widgets/route_widgets.dart';
+import '../../../addresses/data/models/address_model.dart';
+import '../../../addresses/presentation/cubit/addresses_cubit.dart';
 import '../../../orders/presentation/cubit/orders_cubit.dart';
 import '../../../orders/presentation/cubit/orders_state.dart';
 import '../cubit/cart_cubit.dart';
@@ -223,82 +225,191 @@ class CartScreen extends StatelessWidget {
   }
 
   void _checkoutSheet(BuildContext context, String cartId) {
-    final details = TextEditingController();
-    final phone = TextEditingController();
-    final city = TextEditingController();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Shipping address',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink)),
-            const SizedBox(height: 12),
-            TextField(
-                controller: details,
-                decoration:
-                    const InputDecoration(hintText: 'Address details')),
-            const SizedBox(height: 12),
-            TextField(
-                controller: phone,
-                keyboardType: TextInputType.phone,
-                decoration:
-                    const InputDecoration(hintText: 'Phone')),
-            const SizedBox(height: 12),
-            TextField(
-                controller: city,
-                decoration:
-                    const InputDecoration(hintText: 'City')),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (details.text.trim().isEmpty ||
-                      phone.text.trim().isEmpty ||
-                      city.text.trim().isEmpty) {
-                    Fluttertoast.showToast(
-                        msg: 'Please fill the address');
-                    return;
-                  }
-                  final orders = sl<OrdersCubit>();
-                  await orders.placeOrder(cartId, {
-                    'details': details.text.trim(),
-                    'phone': phone.text.trim(),
-                    'city': city.text.trim(),
-                  });
-                  if (!ctx.mounted) return;
-                  final s = orders.state;
-                  if (s is OrderPlaced) {
-                    Navigator.pop(ctx);
-                    Fluttertoast.showToast(
-                        msg: 'Order placed successfully');
-                    context.read<CartCubit>().getCart();
-                    context.go(AppRouter.orders);
-                  } else if (s is OrdersFailure) {
-                    Fluttertoast.showToast(msg: s.message);
-                  }
-                },
-                child: const Text('Confirm Order'),
-              ),
+      builder: (ctx) => BlocProvider(
+        create: (_) => sl<AddressesCubit>()..load(),
+        child: _AddressPicker(cartId: cartId),
+      ),
+    );
+  }
+}
+
+class _AddressPicker extends StatefulWidget {
+  final String cartId;
+  const _AddressPicker({required this.cartId});
+
+  @override
+  State<_AddressPicker> createState() => _AddressPickerState();
+}
+
+class _AddressPickerState extends State<_AddressPicker> {
+  bool _showNew = false;
+  final _name = TextEditingController();
+  final _details = TextEditingController();
+  final _phone = TextEditingController();
+  final _city = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _details.dispose();
+    _phone.dispose();
+    _city.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirm(AddressesLoaded s) async {
+    final cubit = context.read<AddressesCubit>();
+    Map<String, String>? address;
+    if (_showNew) {
+      if (_details.text.trim().isEmpty ||
+          _phone.text.trim().isEmpty ||
+          _city.text.trim().isEmpty) {
+        Fluttertoast.showToast(msg: 'Please fill the address');
+        return;
+      }
+      final ok = await cubit.add(Address(
+        id: '',
+        name: _name.text.trim().isEmpty ? 'Home' : _name.text.trim(),
+        details: _details.text.trim(),
+        phone: _phone.text.trim(),
+        city: _city.text.trim(),
+      ));
+      if (!ok) {
+        Fluttertoast.showToast(msg: 'Could not save the address');
+        return;
+      }
+      final latest = cubit.state;
+      if (latest is AddressesLoaded && latest.addresses.isNotEmpty) {
+        final a = latest.addresses.last;
+        address = {'details': a.details, 'phone': a.phone, 'city': a.city};
+      }
+    } else {
+      final found = s.addresses.where((a) => a.id == s.selectedId).toList();
+      if (found.isEmpty) {
+        Fluttertoast.showToast(msg: 'Please select an address');
+        return;
+      }
+      address = {
+        'details': found.first.details,
+        'phone': found.first.phone,
+        'city': found.first.city,
+      };
+    }
+    if (address == null) return;
+    final orders = sl<OrdersCubit>();
+    await orders.placeOrder(widget.cartId, address);
+    if (!mounted) return;
+    final st = orders.state;
+    if (st is OrderPlaced) {
+      Navigator.pop(context);
+      Fluttertoast.showToast(msg: 'Order placed successfully');
+      context.read<CartCubit>().getCart();
+      context.go(AppRouter.orders);
+    } else if (st is OrdersFailure) {
+      Fluttertoast.showToast(msg: st.message);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16),
+      child: BlocBuilder<AddressesCubit, AddressesState>(
+        builder: (context, state) {
+          if (state is AddressesLoading || state is AddressesInitial) {
+            return const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator()));
+          }
+          if (state is AddressesFailure) {
+            return SizedBox(
+              height: 160,
+              child: Center(child: Text(state.message)),
+            );
+          }
+          final s = state as AddressesLoaded;
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Shipping address',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink)),
+                const SizedBox(height: 8),
+                RadioGroup<String>(
+                  groupValue: _showNew ? null : s.selectedId,
+                  onChanged: (v) {
+                    setState(() => _showNew = false);
+                    context.read<AddressesCubit>().select(v);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: s.addresses
+                        .map((a) => RadioListTile<String>(
+                              value: a.id,
+                              title: Text('${a.name} - ${a.city}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              subtitle:
+                                  Text('${a.details}\n${a.phone}'),
+                              isThreeLine: true,
+                            ))
+                        .toList(),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => setState(() => _showNew = !_showNew),
+                  icon: Icon(_showNew ? Icons.remove : Icons.add),
+                  label: const Text('New address'),
+                ),
+                if (_showNew) ...[
+                  TextField(
+                      controller: _name,
+                      decoration: const InputDecoration(
+                          hintText: 'Label (Home, Work...)')),
+                  const SizedBox(height: 8),
+                  TextField(
+                      controller: _details,
+                      decoration: const InputDecoration(
+                          hintText: 'Address details')),
+                  const SizedBox(height: 8),
+                  TextField(
+                      controller: _phone,
+                      keyboardType: TextInputType.phone,
+                      decoration:
+                          const InputDecoration(hintText: 'Phone')),
+                  const SizedBox(height: 8),
+                  TextField(
+                      controller: _city,
+                      decoration:
+                          const InputDecoration(hintText: 'City')),
+                  const SizedBox(height: 8),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () => _confirm(s),
+                    child: const Text('Confirm Order'),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

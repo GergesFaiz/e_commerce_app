@@ -28,6 +28,10 @@ import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../features/reviews/data/datasources/reviews_remote_datasource.dart';
 import '../../features/reviews/domain/reviews_repository.dart';
 import '../../features/reviews/presentation/cubit/reviews_cubit.dart';
+// Addresses
+import '../../features/addresses/data/datasources/addresses_remote_datasource.dart';
+import '../../features/addresses/domain/addresses_repository.dart';
+import '../../features/addresses/presentation/cubit/addresses_cubit.dart';
 import '../../features/products/data/datasources/products_remote_datasource.dart';
 import '../../features/products/data/repos/products_repo_impl.dart';
 import '../../features/products/domain/repos/i_products_repo.dart';
@@ -120,6 +124,18 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => GetReviewsUseCase(sl()));
   sl.registerLazySingleton(() => AddReviewUseCase(sl()));
   sl.registerFactory(() => ReviewsCubit(sl(), sl()));
+
+  // ── Addresses ──
+  sl.registerLazySingleton<AddressesRemoteDatasource>(
+    () => AddressesRemoteDatasourceImpl(sl()),
+  );
+  sl.registerLazySingleton<IAddressesRepo>(
+    () => AddressesRepoImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton(() => GetAddressesUseCase(sl()));
+  sl.registerLazySingleton(() => AddAddressUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAddressUseCase(sl()));
+  sl.registerFactory(() => AddressesCubit(sl(), sl(), sl()));
 
   // ── Cart ──
   sl.registerLazySingleton<CartRemoteDatasource>(

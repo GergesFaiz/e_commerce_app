@@ -1,64 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// Route E-Commerce theme (Poppins everywhere, white surfaces).
 class AppTheme {
   static ThemeData get lightTheme {
-    return ThemeData(
+    final base = ThemeData(
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primary,
+      useMaterial3: true,
+    );
+    return base.copyWith(
+      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme).apply(
+        bodyColor: AppColors.ink,
+        displayColor: AppColors.ink,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: AppColors.white,
+        iconTheme: const IconThemeData(color: AppColors.primary),
+        titleTextStyle: GoogleFonts.poppins(
+          color: AppColors.ink,
           fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: AppColors.white,
-      ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-        bodyLarge: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 16,
-        ),
-        bodyMedium: TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
       ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         primary: AppColors.primary,
-        secondary: AppColors.secondary,
+        surface: AppColors.background,
         error: AppColors.error,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          foregroundColor: Colors.white,
+          textStyle: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          minimumSize: const Size(double.infinity, 64),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.white,
+        hintStyle: GoogleFonts.poppins(color: AppColors.hint, fontSize: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: AppColors.fieldBorder),
+        ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
-      useMaterial3: true,
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: AppColors.fieldBorder),
+        ),
+      ),
     );
   }
 }

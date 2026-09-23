@@ -1,6 +1,6 @@
 # E-Commerce App (Flutter)
 
-A fully functional e-commerce mobile application built with **Flutter**, following a **clean architecture** with feature-first modularity. It integrates with a live REST API to fetch products, categories, brands, cart and orders in real time.
+A fully functional e-commerce mobile application built with **Flutter**, following a **clean architecture** with feature-first modularity. UI implements the **Route E-Commerce App Figma design** (Poppins, `#004182` / `#06004F`, Splash, Sign in/up, Home, Categories, Product list/details, Cart, Wishlist, Account).
 
 > Built with the Route Misr e-commerce API (`https://ecommerce.routemisr.com`).
 

@@ -16,23 +16,31 @@ class ProductsRepoImpl implements IProductsRepo {
   final NetworkInfo _network;
   ProductsRepoImpl(this._remote, this._network);
 
+  bool _isDefaultPage(ProductQuery q) =>
+      (q.keyword == null || q.keyword!.isEmpty) &&
+      q.sort == null &&
+      q.categoryId == null &&
+      q.page == 1;
+
   @override
-  Future<Either<Failure, List<ProductEntity>>> getProducts({String? categoryId}) async {
+  Future<Either<Failure, ProductPage>> getProducts(ProductQuery query) async {
     if (!await _network.isConnected) {
-      final cached = _readCache();
-      if (cached != null) {
-        return Right(_filterByCategory(cached, categoryId));
+      if (_isDefaultPage(query)) {
+        final cached = _readCache();
+        if (cached != null) {
+          return Right(ProductPage(items: cached, currentPage: 1, totalPages: 1));
+        }
       }
       return const Left(NetworkFailure());
     }
     try {
-      final res = await _remote.getProducts();
-      _writeCache(res);
-      final items = _filterByCategory(
-        res.data.map((e) => e.toEntity()).toList(),
-        categoryId,
-      );
-      return Right(items);
+      final res = await _remote.getProducts(query);
+      if (_isDefaultPage(query)) _writeCache(res);
+      return Right(ProductPage(
+        items: res.data.map((e) => e.toEntity()).toList(),
+        currentPage: res.metadata?.currentPage ?? query.page,
+        totalPages: res.metadata?.numberOfPages ?? query.page,
+      ));
     } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
   }
 
@@ -43,14 +51,6 @@ class ProductsRepoImpl implements IProductsRepo {
       final res = await _remote.getProductById(id);
       return Right(res.data.toEntity());
     } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
-  }
-
-  List<ProductEntity> _filterByCategory(
-    List<ProductEntity> items,
-    String? categoryId,
-  ) {
-    if (categoryId == null) return items;
-    return items.where((p) => p.categoryName.isNotEmpty).toList();
   }
 
   void _writeCache(ProductsResponseModel res) {

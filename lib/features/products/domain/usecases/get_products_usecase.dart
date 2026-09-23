@@ -1,13 +1,12 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/di/base_usecase.dart';
 import '../../../../core/error/failure.dart';
-import '../entities/product_entity.dart';
 import '../repos/i_products_repo.dart';
 
-class GetProductsUseCase extends BaseUseCase<List<ProductEntity>, String?> {
+class GetProductsUseCase extends BaseUseCase<ProductPage, ProductQuery> {
   final IProductsRepo _repo;
   GetProductsUseCase(this._repo);
   @override
-  Future<Either<Failure, List<ProductEntity>>> call(String? categoryId) =>
-      _repo.getProducts(categoryId: categoryId);
+  Future<Either<Failure, ProductPage>> call(ProductQuery query) =>
+      _repo.getProducts(query);
 }

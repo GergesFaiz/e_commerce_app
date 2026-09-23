@@ -12,12 +12,16 @@ ProductsResponseModel _$ProductsResponseModelFromJson(
       data: (json['data'] as List<dynamic>)
           .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      metadata: json['metadata'] == null
+          ? null
+          : PageMeta.fromJson(json['metadata'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ProductsResponseModelToJson(
         ProductsResponseModel instance) =>
     <String, dynamic>{
       'data': instance.data.map((e) => e.toJson()).toList(),
+      'metadata': instance.metadata?.toJson(),
     };
 
 ProductDetailsResponseModel _$ProductDetailsResponseModelFromJson(
@@ -62,6 +66,18 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'quantity': instance.quantity,
       'images': instance.images,
       'category': instance.category.toJson(),
+    };
+
+PageMeta _$PageMetaFromJson(Map<String, dynamic> json) => PageMeta(
+      currentPage: (json['currentPage'] as num?)?.toInt(),
+      numberOfPages: (json['numberOfPages'] as num?)?.toInt(),
+      limit: (json['limit'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$PageMetaToJson(PageMeta instance) => <String, dynamic>{
+      'currentPage': instance.currentPage,
+      'numberOfPages': instance.numberOfPages,
+      'limit': instance.limit,
     };
 
 CategoryRef _$CategoryRefFromJson(Map<String, dynamic> json) => CategoryRef(

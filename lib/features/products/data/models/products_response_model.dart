@@ -6,7 +6,8 @@ part 'products_response_model.g.dart';
 @JsonSerializable(explicitToJson: true)
 class ProductsResponseModel {
   final List<ProductModel> data;
-  ProductsResponseModel({required this.data});
+  final PageMeta? metadata;
+  ProductsResponseModel({required this.data, this.metadata});
   factory ProductsResponseModel.fromJson(Map<String, dynamic> json) => _$ProductsResponseModelFromJson(json);
   Map<String, dynamic> toJson() => _$ProductsResponseModelToJson(this);
 }
@@ -46,6 +47,16 @@ class ProductModel {
     ratingsAverage: ratingsAverage, ratingsQuantity: ratingsQuantity,
     sold: sold, quantity: quantity, images: images, categoryName: category.name,
   );
+}
+
+@JsonSerializable()
+class PageMeta {
+  final int? currentPage;
+  final int? numberOfPages;
+  final int? limit;
+  PageMeta({this.currentPage, this.numberOfPages, this.limit});
+  factory PageMeta.fromJson(Map<String, dynamic> json) => _$PageMetaFromJson(json);
+  Map<String, dynamic> toJson() => _$PageMetaToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)

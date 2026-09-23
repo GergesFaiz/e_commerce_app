@@ -1,98 +1,103 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/product_entity.dart';
+import '../../domain/repos/i_products_repo.dart';
 import '../../domain/usecases/get_products_usecase.dart';
 import '../../domain/usecases/get_product_details_usecase.dart';
 import 'products_state.dart';
 
+/// Server-driven listing: keyword search (debounced), price sort,
+/// category filter and page-based pagination, per the API docs.
 class ProductsCubit extends Cubit<ProductsState> {
   final GetProductsUseCase _getProducts;
   final GetProductDetailsUseCase _getDetails;
   ProductsCubit(this._getProducts, this._getDetails) : super(ProductsInitial());
 
-  List<ProductEntity> _all = [];
+  static const int pageSize = 10;
+
+  String? _categoryId;
   String _query = '';
   bool? _sortByPriceAsc;
-  static const int _pageSize = 10;
-  int _currentPage = 1;
+  Timer? _debounce;
 
   Future<void> getProducts({String? categoryId}) async {
-    emit(ProductsLoading());
-    final result = await _getProducts(categoryId);
-    result.fold(
-      (f) => emit(ProductsFailure(f.message)),
-      (p) {
-        _all = p;
-        _query = '';
-        _sortByPriceAsc = null;
-        _currentPage = 1;
-        emit(_pageState());
-      },
-    );
+    _categoryId = categoryId;
+    _query = '';
+    _sortByPriceAsc = null;
+    await _fetch(page: 1, append: false);
   }
 
   void setSearchQuery(String query) {
-    if (state is! ProductsLoaded) {
-      _query = query;
+    _query = query;
+    _debounce?.cancel();
+    if (query.trim().isEmpty) {
+      _fetch(page: 1, append: false);
       return;
     }
-    _query = query;
-    _currentPage = 1;
-    emit(_pageState());
+    emit(ProductsLoading());
+    _debounce = Timer(const Duration(milliseconds: 450), () {
+      _fetch(page: 1, append: false);
+    });
   }
 
   void toggleSortByPrice() {
-    if (state is! ProductsLoaded) return;
+    if (state is! ProductsLoaded && state is! ProductsLoading) return;
     _sortByPriceAsc = _sortByPriceAsc == null
         ? true
         : _sortByPriceAsc == true
             ? false
             : null;
-    _currentPage = 1;
-    emit(_pageState());
+    _fetch(page: 1, append: false);
   }
 
   void loadMore() {
     final s = state;
     if (s is! ProductsLoaded || !s.hasMore) return;
-    _currentPage++;
-    emit(_pageState());
+    _fetch(page: s.currentPage + 1, append: true);
   }
 
-  ProductsLoaded _pageState() {
-    final filtered = _filtered();
-    final end = (_currentPage * _pageSize).clamp(0, filtered.length);
-    return ProductsLoaded(
-      filtered.take(end).toList(),
-      query: _query,
-      sortByPriceAsc: _sortByPriceAsc,
-      currentPage: _currentPage,
-      pageSize: _pageSize,
-      totalCount: filtered.length,
+  String? get _sortParam {
+    if (_sortByPriceAsc == null) return null;
+    return _sortByPriceAsc! ? 'price' : '-price';
+  }
+
+  Future<void> _fetch({required int page, required bool append}) async {
+    final previous = state;
+    if (!append) emit(ProductsLoading());
+    final result = await _getProducts(ProductQuery(
+      categoryId: _categoryId,
+      keyword: _query.trim().isEmpty ? null : _query.trim(),
+      sort: _sortParam,
+      page: page,
+      limit: pageSize,
+    ));
+    result.fold(
+      (f) => emit(ProductsFailure(f.message)),
+      (p) {
+        final items = append && previous is ProductsLoaded
+            ? [...previous.products, ...p.items]
+            : p.items;
+        emit(ProductsLoaded(
+          items,
+          query: _query,
+          sortByPriceAsc: _sortByPriceAsc,
+          currentPage: p.currentPage,
+          pageSize: pageSize,
+          totalPages: p.totalPages,
+        ));
+      },
     );
-  }
-
-  List<ProductEntity> _filtered() {
-    var list = List<ProductEntity>.of(_all);
-    final q = _query.trim().toLowerCase();
-    if (q.isNotEmpty) {
-      list = list
-          .where((p) =>
-              p.title.toLowerCase().contains(q) ||
-              p.categoryName.toLowerCase().contains(q) ||
-              p.description.toLowerCase().contains(q))
-          .toList();
-    }
-    if (_sortByPriceAsc != null) {
-      list.sort((a, b) => _sortByPriceAsc!
-          ? a.price.compareTo(b.price)
-          : b.price.compareTo(a.price));
-    }
-    return list;
   }
 
   Future<void> getProductDetails(String id) async {
     emit(ProductsLoading());
     final result = await _getDetails(id);
     result.fold((f) => emit(ProductsFailure(f.message)), (p) => emit(ProductDetailsLoaded(p)));
+  }
+
+  @override
+  Future<void> close() {
+    _debounce?.cancel();
+    return super.close();
   }
 }

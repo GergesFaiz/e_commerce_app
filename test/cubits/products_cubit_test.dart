@@ -8,13 +8,36 @@ import 'package:e_commerce/features/products/presentation/cubit/products_cubit.d
 import 'package:e_commerce/features/products/presentation/cubit/products_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// In-memory fake that mimics the server: keyword filter, price sort
+/// and page-based pagination.
 class FakeProductsRepo implements IProductsRepo {
   FakeProductsRepo(this.items);
   final List<ProductEntity> items;
 
+  ProductQuery? lastQuery;
+
   @override
-  Future<Either<Failure, List<ProductEntity>>> getProducts({String? categoryId}) async {
-    return Right(items);
+  Future<Either<Failure, ProductPage>> getProducts(ProductQuery query) async {
+    lastQuery = query;
+    var list = List<ProductEntity>.of(items);
+    if (query.categoryId != null) {
+      list = list.where((p) => p.categoryName.isNotEmpty).toList();
+    }
+    if (query.keyword != null && query.keyword!.isNotEmpty) {
+      final q = query.keyword!.toLowerCase();
+      list = list.where((p) => p.title.toLowerCase().contains(q)).toList();
+    }
+    if (query.sort == 'price') {
+      list.sort((a, b) => a.price.compareTo(b.price));
+    } else if (query.sort == '-price') {
+      list.sort((a, b) => b.price.compareTo(a.price));
+    }
+    const limit = 10;
+    final totalPages = (list.length / limit).ceil().clamp(1, 1 << 30);
+    final start = (query.page - 1) * limit;
+    final pageItems = list.skip(start).take(limit).toList();
+    return Right(ProductPage(
+        items: pageItems, currentPage: query.page, totalPages: totalPages));
   }
 
   @override
@@ -45,51 +68,61 @@ void main() {
     return ProductsCubit(GetProductsUseCase(repo), GetProductDetailsUseCase(repo));
   }
 
-  test('first page shows 10 items and loadMore shows the rest', () async {
+  test('first server page shows 10 items and loadMore appends the rest', () async {
     final items = List.generate(12, (i) => product('p$i', 'Product $i', 100.0 + i));
     final cubit = buildCubit(items);
 
     await cubit.getProducts();
     var state = cubit.state as ProductsLoaded;
     expect(state.products.length, 10);
-    expect(state.totalCount, 12);
     expect(state.hasMore, isTrue);
 
     cubit.loadMore();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     state = cubit.state as ProductsLoaded;
     expect(state.products.length, 12);
     expect(state.hasMore, isFalse);
   });
 
-  test('search filters by title', () async {
-    final cubit = buildCubit([
+  test('search sends the keyword to the server', () async {
+    final repo = FakeProductsRepo([
       product('1', 'Nike Shoes', 500),
       product('2', 'Adidas Shirt', 300),
       product('3', 'Nike Hat', 200),
     ]);
+    final cubit =
+        ProductsCubit(GetProductsUseCase(repo), GetProductDetailsUseCase(repo));
 
     await cubit.getProducts();
     cubit.setSearchQuery('nike');
+    await Future<void>.delayed(const Duration(milliseconds: 600));
 
     final state = cubit.state as ProductsLoaded;
+    expect(repo.lastQuery?.keyword, 'nike');
     expect(state.products.length, 2);
     expect(state.query, 'nike');
   });
 
-  test('sort toggles asc then desc', () async {
-    final cubit = buildCubit([
+  test('sort toggles server sort param asc then desc', () async {
+    final repo = FakeProductsRepo([
       product('1', 'A', 300),
       product('2', 'B', 100),
       product('3', 'C', 200),
     ]);
+    final cubit =
+        ProductsCubit(GetProductsUseCase(repo), GetProductDetailsUseCase(repo));
 
     await cubit.getProducts();
     cubit.toggleSortByPrice();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     var state = cubit.state as ProductsLoaded;
+    expect(repo.lastQuery?.sort, 'price');
     expect(state.products.map((e) => e.price).toList(), [100, 200, 300]);
 
     cubit.toggleSortByPrice();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     state = cubit.state as ProductsLoaded;
+    expect(repo.lastQuery?.sort, '-price');
     expect(state.products.map((e) => e.price).toList(), [300, 200, 100]);
   });
 }

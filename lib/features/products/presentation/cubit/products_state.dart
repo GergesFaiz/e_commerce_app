@@ -9,16 +9,16 @@ class ProductsLoaded extends ProductsState {
   final bool? sortByPriceAsc;
   final int currentPage;
   final int pageSize;
-  final int totalCount;
-  bool get hasMore => currentPage * pageSize < totalCount;
+  final int totalPages;
+  bool get hasMore => currentPage < totalPages;
   ProductsLoaded(
     this.products, {
     this.query = '',
     this.sortByPriceAsc,
     this.currentPage = 1,
     this.pageSize = 10,
-    int? totalCount,
-  }) : totalCount = totalCount ?? products.length;
+    this.totalPages = 1,
+  });
 }
 class ProductDetailsLoaded extends ProductsState {
   final ProductEntity product;

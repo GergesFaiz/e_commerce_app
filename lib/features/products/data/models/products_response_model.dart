@@ -22,20 +22,28 @@ class ProductDetailsResponseModel {
 
 @JsonSerializable(explicitToJson: true)
 class ProductModel {
-  final String id, title, description, imageCover;
+  @JsonKey(readValue: _readId)
+  final String id;
+  final String title, imageCover;
+  @JsonKey(defaultValue: '')
+  final String description;
   final double price;
   final double? priceAfterDiscount;
+  @JsonKey(defaultValue: 0)
   final double ratingsAverage;
+  @JsonKey(defaultValue: 0)
   final int ratingsQuantity, sold, quantity;
+  @JsonKey(defaultValue: <String>[])
   final List<String> images;
-  final CategoryRef category;
+  final CategoryRef? category;
+  final CategoryRef? brand;
 
   ProductModel({
     required this.id, required this.title, required this.description,
     required this.imageCover, required this.price, this.priceAfterDiscount,
     required this.ratingsAverage, required this.ratingsQuantity,
     required this.sold, required this.quantity, required this.images,
-    required this.category,
+    this.category, this.brand,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => _$ProductModelFromJson(json);
@@ -45,9 +53,13 @@ class ProductModel {
     id: id, title: title, description: description, imageCover: imageCover,
     price: price, priceAfterDiscount: priceAfterDiscount,
     ratingsAverage: ratingsAverage, ratingsQuantity: ratingsQuantity,
-    sold: sold, quantity: quantity, images: images, categoryName: category.name,
+    sold: sold, quantity: quantity, images: images,
+    categoryName: category?.name ?? '', brandName: brand?.name ?? '',
   );
 }
+
+/// Documents expose `_id`; products also carry a virtual `id`.
+Object? _readId(Map json, String key) => json['_id'] ?? json['id'];
 
 @JsonSerializable()
 class PageMeta {
@@ -61,7 +73,10 @@ class PageMeta {
 
 @JsonSerializable(explicitToJson: true)
 class CategoryRef {
-  final String id, name;
+  @JsonKey(readValue: _readId, defaultValue: '')
+  final String id;
+  @JsonKey(defaultValue: '')
+  final String name;
   CategoryRef({required this.id, required this.name});
   factory CategoryRef.fromJson(Map<String, dynamic> json) => _$CategoryRefFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryRefToJson(this);

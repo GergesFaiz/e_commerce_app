@@ -21,7 +21,7 @@ class OrdersRepoImpl implements IOrdersRepo {
       return Right(r.toEntity());
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -30,9 +30,11 @@ class OrdersRepoImpl implements IOrdersRepo {
     if (!await _network.isConnected) return const Left(NetworkFailure());
     try {
       final r = await _remote.getUserOrders(userId);
-      return Right(r.map((e) => e.toEntity()).toList());
+      final orders = r.map((e) => e.toEntity()).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return Right(orders);
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 }

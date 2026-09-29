@@ -5,7 +5,7 @@ import '../models/order_response_model.dart';
 abstract class OrdersRemoteDatasource {
   Future<OrderResponseModel> checkout(
       String cartId, Map<String, dynamic> shippingAddress);
-  Future<List<OrderResponseModel>> getUserOrders(String userId);
+  Future<List<OrderModel>> getUserOrders(String userId);
 }
 
 class OrdersRemoteDatasourceImpl implements OrdersRemoteDatasource {
@@ -20,6 +20,6 @@ class OrdersRemoteDatasourceImpl implements OrdersRemoteDatasource {
       _api.checkout(cartId, {'shippingAddress': address}, _token);
 
   @override
-  Future<List<OrderResponseModel>> getUserOrders(String userId) =>
+  Future<List<OrderModel>> getUserOrders(String userId) =>
       _api.getUserOrders(userId, _token);
 }

@@ -16,16 +16,33 @@ class ProductsCubit extends Cubit<ProductsState> {
   static const int pageSize = 10;
 
   String? _categoryId;
+  String? _subcategoryId;
+  String? _brandId;
+  String? _defaultSort;
   String _query = '';
   bool? _sortByPriceAsc;
   Timer? _debounce;
 
-  Future<void> getProducts({String? categoryId}) async {
+  /// Loads the first page. [sort] is the API sort used while no price sort
+  /// is picked (e.g. `-sold` for best sellers).
+  Future<void> getProducts({
+    String? categoryId,
+    String? subcategoryId,
+    String? brandId,
+    String? sort,
+    String query = '',
+  }) async {
     _categoryId = categoryId;
-    _query = '';
+    _subcategoryId = subcategoryId;
+    _brandId = brandId;
+    _defaultSort = sort;
+    _query = query;
     _sortByPriceAsc = null;
     await _fetch(page: 1, append: false);
   }
+
+  /// Re-runs the current query from the first page (pull-to-refresh).
+  Future<void> refresh() => _fetch(page: 1, append: false);
 
   void setSearchQuery(String query) {
     _query = query;
@@ -57,7 +74,7 @@ class ProductsCubit extends Cubit<ProductsState> {
   }
 
   String? get _sortParam {
-    if (_sortByPriceAsc == null) return null;
+    if (_sortByPriceAsc == null) return _defaultSort;
     return _sortByPriceAsc! ? 'price' : '-price';
   }
 
@@ -66,6 +83,8 @@ class ProductsCubit extends Cubit<ProductsState> {
     if (!append) emit(ProductsLoading());
     final result = await _getProducts(ProductQuery(
       categoryId: _categoryId,
+      subcategoryId: _subcategoryId,
+      brandId: _brandId,
       keyword: _query.trim().isEmpty ? null : _query.trim(),
       sort: _sortParam,
       page: page,

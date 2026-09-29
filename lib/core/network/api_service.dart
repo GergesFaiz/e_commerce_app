@@ -21,7 +21,6 @@ abstract class ApiService {
   @POST('auth/signin')
   Future<UserModel> login(@Body() Map<String, dynamic> body);
 
-// بعد
   @POST('auth/forgotPasswords')
   Future<HttpResponse<dynamic>> forgotPassword(@Body() Map<String, dynamic> body);
 
@@ -54,6 +53,7 @@ abstract class ApiService {
     @Query('page') int? page,
     @Query('limit') int? limit,
     @Query('category[in]') String? categoryId,
+    @Query('subcategory[in]') String? subcategoryId,
     @Query('brand') String? brandId,
     @Query('price[gte]') num? minPrice,
     @Query('price[lte]') num? maxPrice,
@@ -149,10 +149,9 @@ abstract class ApiService {
     @Header('token') String token,
   );
 
-// بعد
   @GET('orders/user/{userId}')
-  Future<List<OrderResponseModel>> getUserOrders(
-      @Path('userId') String userId,
-      @Header('token') String token,
-      );
+  Future<List<OrderModel>> getUserOrders(
+    @Path('userId') String userId,
+    @Header('token') String token,
+  );
 }

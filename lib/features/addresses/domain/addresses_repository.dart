@@ -24,7 +24,7 @@ class AddressesRepoImpl implements IAddressesRepo {
       return Right(await _remote.getAddresses());
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -34,7 +34,7 @@ class AddressesRepoImpl implements IAddressesRepo {
       return Right(await _remote.addAddress(address));
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -45,7 +45,7 @@ class AddressesRepoImpl implements IAddressesRepo {
       return const Right(null);
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 }
 

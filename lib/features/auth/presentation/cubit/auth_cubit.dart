@@ -5,6 +5,7 @@ import 'package:e_commerce/features/auth/domain/usecases/login_usecase.dart';
 import 'package:e_commerce/features/auth/domain/usecases/register_usecase.dart';
 import 'package:e_commerce/features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'package:e_commerce/features/auth/domain/usecases/profile_usecases.dart';
+import 'package:e_commerce/features/auth/domain/entities/user_entity.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -37,12 +38,10 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     final result = await _loginUseCase(LoginParams(email: email, password: password));
     
-    result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
+    await result.fold(
+      (failure) async => emit(AuthFailure(failure.message)),
       (user) async {
-        await CacheHelper.saveToken(user.token);
-        final id = JwtHelper.userId(user.token);
-        await CacheHelper.saveUserId(id.isNotEmpty ? id : user.id);
+        await _saveSession(user);
         emit(AuthSuccess(user));
       },
     );
@@ -67,15 +66,20 @@ class AuthCubit extends Cubit<AuthState> {
       phone: phone,
     ));
 
-    result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
+    await result.fold(
+      (failure) async => emit(AuthFailure(failure.message)),
       (user) async {
-        await CacheHelper.saveToken(user.token);
-        final id = JwtHelper.userId(user.token);
-        await CacheHelper.saveUserId(id.isNotEmpty ? id : user.id);
+        await _saveSession(user, phone: phone);
         emit(AuthSuccess(user));
       },
     );
+  }
+
+  Future<void> _saveSession(UserEntity user, {String? phone}) async {
+    await CacheHelper.saveToken(user.token);
+    final id = JwtHelper.userId(user.token);
+    await CacheHelper.saveUserId(id.isNotEmpty ? id : user.id);
+    await CacheHelper.saveProfile(name: user.name, email: user.email, phone: phone);
   }
 
   Future<void> forgotPassword(String email) async {
@@ -145,9 +149,12 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await _updateProfileUseCase(
       UpdateProfileParams(name: name, email: email, phone: phone),
     );
-    result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
-      (msg) => emit(AuthMessage(msg)),
+    await result.fold(
+      (failure) async => emit(AuthFailure(failure.message)),
+      (msg) async {
+        await CacheHelper.saveProfile(name: name, email: email, phone: phone);
+        emit(AuthMessage(msg));
+      },
     );
   }
 
@@ -159,9 +166,8 @@ class AuthCubit extends Cubit<AuthState> {
     return result.fold((_) => false, (ok) => ok);
   }
 
-  void logout() async {
-    await CacheHelper.removeToken();
-    await CacheHelper.removeUserId();
+  Future<void> logout() async {
+    await CacheHelper.clearSession();
     emit(AuthInitial());
   }
 }

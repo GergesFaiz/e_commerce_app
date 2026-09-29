@@ -32,11 +32,20 @@ class HomeCubit extends Cubit<HomeState> {
         selectedCategoryId: categoryId, loadingSubs: true, subError: null));
     final res = await _subCategories(categoryId);
     final latest = state;
-    if (latest is! HomeLoaded) return;
+    // Ignore answers for a category the user already left.
+    if (latest is! HomeLoaded || latest.selectedCategoryId != categoryId) return;
     res.fold(
       (f) => emit(latest.copyWith(loadingSubs: false, subError: f.message)),
       (subs) => emit(latest.copyWith(
           subcategories: subs, loadingSubs: false, subError: null)),
     );
+  }
+
+  /// Selects the first category when none is selected yet (Categories tab).
+  void ensureCategorySelected() {
+    final s = state;
+    if (s is HomeLoaded && s.selectedCategoryId == null && s.categories.isNotEmpty) {
+      selectCategory(s.categories.first.id);
+    }
   }
 }

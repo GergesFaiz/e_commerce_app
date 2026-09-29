@@ -17,6 +17,8 @@ class ProductsRemoteDatasourceImpl implements ProductsRemoteDatasource {
         page: query.page,
         limit: query.limit,
         categoryId: query.categoryId,
+        subcategoryId: query.subcategoryId,
+        brandId: query.brandId,
       );
   @override
   Future<ProductDetailsResponseModel> getProductById(String id) => _api.getProductById(id);

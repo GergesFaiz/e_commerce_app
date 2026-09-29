@@ -37,6 +37,30 @@ class CacheHelper {
     return await _prefs!.remove(AppConstants.userIdKey);
   }
 
+  /// Profile shown on the Account tab (the API has no "get me" endpoint).
+  static Future<void> saveProfile({String? name, String? email, String? phone}) async {
+    if (name != null) await _prefs!.setString(AppConstants.userNameKey, name);
+    if (email != null) await _prefs!.setString(AppConstants.userEmailKey, email);
+    if (phone != null) await _prefs!.setString(AppConstants.userPhoneKey, phone);
+  }
+
+  static String get userName => _prefs?.getString(AppConstants.userNameKey) ?? '';
+  static String get userEmail => _prefs?.getString(AppConstants.userEmailKey) ?? '';
+  static String get userPhone => _prefs?.getString(AppConstants.userPhoneKey) ?? '';
+
+  /// Removes the token and everything tied to the signed-in user.
+  static Future<void> clearSession() async {
+    for (final key in [
+      AppConstants.tokenKey,
+      AppConstants.userIdKey,
+      AppConstants.userNameKey,
+      AppConstants.userEmailKey,
+      AppConstants.userPhoneKey,
+    ]) {
+      await _prefs!.remove(key);
+    }
+  }
+
   static Future<bool> saveString(String key, String value) async {
     return await _prefs!.setString(key, value);
   }

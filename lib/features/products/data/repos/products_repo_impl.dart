@@ -16,10 +16,14 @@ class ProductsRepoImpl implements IProductsRepo {
   final NetworkInfo _network;
   ProductsRepoImpl(this._remote, this._network);
 
+  /// Unfiltered first pages (all products, or Home's best sellers) are
+  /// cached for offline use.
   bool _isDefaultPage(ProductQuery q) =>
       (q.keyword == null || q.keyword!.isEmpty) &&
-      q.sort == null &&
+      (q.sort == null || q.sort == '-sold') &&
       q.categoryId == null &&
+      q.subcategoryId == null &&
+      q.brandId == null &&
       q.page == 1;
 
   @override
@@ -41,7 +45,7 @@ class ProductsRepoImpl implements IProductsRepo {
         currentPage: res.metadata?.currentPage ?? query.page,
         totalPages: res.metadata?.numberOfPages ?? query.page,
       ));
-    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -50,7 +54,7 @@ class ProductsRepoImpl implements IProductsRepo {
     try {
       final res = await _remote.getProductById(id);
       return Right(res.data.toEntity());
-    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   void _writeCache(ProductsResponseModel res) {

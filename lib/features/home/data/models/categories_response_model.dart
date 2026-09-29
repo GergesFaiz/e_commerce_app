@@ -15,7 +15,10 @@ class CategoriesResponseModel {
 class CategoryModel {
   @JsonKey(name: '_id')
   final String id;
-  final String name, image;
+  final String name;
+  // Subcategories come without an image.
+  @JsonKey(defaultValue: '')
+  final String image;
   CategoryModel({required this.id, required this.name, required this.image});
   factory CategoryModel.fromJson(Map<String, dynamic> json) => _$CategoryModelFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryModelToJson(this);

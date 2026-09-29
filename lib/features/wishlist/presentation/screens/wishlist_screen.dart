@@ -1,16 +1,17 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
 import '../../../../core/widgets/custom_loading.dart';
+import '../../../../core/widgets/route_header.dart';
 import '../../../../core/widgets/route_widgets.dart';
-import '../../../cart/presentation/cubit/cart_cubit.dart';
+import '../../../../core/widgets/store_actions.dart';
+import '../../domain/entities/wishlist_entity.dart';
 import '../cubit/wishlist_cubit.dart';
 import '../cubit/wishlist_state.dart';
 
@@ -19,164 +20,164 @@ class WishlistScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Row(
-                children: [
-                  const RouteLogo(),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: AppColors.primary, size: 30),
-                    onPressed: () => context.push(AppRouter.cart),
-                  ),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: RouteSearchBar(),
-            ),
-            Expanded(
-              child: BlocBuilder<WishlistCubit, WishlistState>(
-                builder: (ctx, state) {
-                  if (state is WishlistLoading) {
-                    return const CustomLoading();
-                  }
-                  if (state is WishlistFailure) {
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          const RouteHeader(),
+          Expanded(
+            child: BlocBuilder<WishlistCubit, WishlistState>(
+              builder: (ctx, state) {
+                final cubit = ctx.read<WishlistCubit>();
+                if (state.items.isEmpty) {
+                  if (state.loading) return const CustomLoading();
+                  if (state.error != null) {
                     return CustomErrorWidget(
-                        message: state.message,
-                        onRetry: () =>
-                            ctx.read<WishlistCubit>().getWishlist());
+                        message: state.error!, onRetry: cubit.getWishlist);
                   }
-                  if (state is WishlistLoaded) {
-                    if (state.items.isEmpty) {
-                      return const Center(
-                          child: Text('Wishlist is empty'));
-                    }
-                    return ListView.separated(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: state.items.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: 12),
-                      itemBuilder: (_, i) {
-                        final item = state.items[i];
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                                color: AppColors.fieldBorder),
-                          ),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.horizontal(
-                                    left: Radius.circular(15)),
-                                child: CachedNetworkImage(
-                                  imageUrl: item.imageCover,
-                                  width: 110,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                  placeholder: (_, __) => Container(
-                                      width: 110,
-                                      height: 120,
-                                      color: const Color(0xFFF0F0F0)),
-                                  errorWidget: (_, __, ___) =>
-                                      const SizedBox(
-                                          width: 110,
-                                          height: 120,
-                                          child: Icon(Icons.image,
-                                              color: AppColors.hint)),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(item.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.ink)),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'EGP ${item.price.toStringAsFixed(0)}',
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.ink),
-                                        ),
-                                        const Spacer(),
-                                        ElevatedButton(
-                                          onPressed: () async {
-                                            await sl<CartCubit>()
-                                                .addToCart(item.id);
-                                            Fluttertoast.showToast(
-                                                msg: 'Added to cart');
-                                          },
-                                          style:
-                                              ElevatedButton.styleFrom(
-                                            minimumSize:
-                                                const Size(110, 40),
-                                            textStyle: const TextStyle(
-                                                fontSize: 13),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        12)),
-                                          ),
-                                          child:
-                                              const Text('Add to Cart'),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    right: 8, bottom: 70),
-                                child: HeartButton(
-                                  filled: true,
-                                  onTap: () => ctx
-                                      .read<WishlistCubit>()
-                                      .remove(item.id),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return const SizedBox();
-                },
-              ),
+                  return EmptyState(
+                    icon: Icons.favorite_border,
+                    title: 'Your wishlist is empty',
+                    message: 'Tap the heart on a product to save it here.',
+                    actionLabel: 'Browse products',
+                    onAction: () => context.push(AppRouter.productList()),
+                  );
+                }
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () => cubit.getWishlist(silent: true),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    itemCount: state.items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (_, i) => _WishlistTile(item: state.items[i]),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomNavigationBar: RouteBottomNav(
-        currentIndex: 2,
-        onTap: (i) {
-          if (i == 0) context.go(AppRouter.home);
-          if (i == 1) context.go(AppRouter.categories);
-          if (i == 2) context.go(AppRouter.wishlist);
-          if (i == 3) context.go(AppRouter.account);
-        },
+    );
+  }
+}
+
+/// Outlined row: image, title, prices, filled heart and "Add to Cart".
+class _WishlistTile extends StatelessWidget {
+  final WishlistItemEntity item;
+  const _WishlistTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDiscount = item.priceAfterDiscount != null &&
+        item.priceAfterDiscount! < item.price;
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: AppColors.outline),
+      ),
+      child: InkWell(
+        onTap: () => context.push(AppRouter.productDetails(item.id)),
+        child: SizedBox(
+          height: 120,
+          child: Row(
+            children: [
+              Container(
+                width: 120,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: RouteImage(item.imageCover, height: double.infinity),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.ink,
+                                    height: 1.25)),
+                          ),
+                          const SizedBox(width: 8),
+                          HeartButton(
+                            filled: true,
+                            size: 30,
+                            onTap: () => toggleWishlist(context, item.id),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                      egp(hasDiscount
+                                          ? item.priceAfterDiscount!
+                                          : item.price),
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.ink)),
+                                ),
+                                if (hasDiscount)
+                                  Text(egp(item.price),
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.oldPrice,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          decorationColor: AppColors.oldPrice)),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 36,
+                            child: ElevatedButton(
+                              onPressed: () => addToCart(context, item.id),
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(0, 36),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
+                                textStyle: AppTheme.font(14, FontWeight.w500),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20)),
+                              ),
+                              child: const Text('Add to Cart'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

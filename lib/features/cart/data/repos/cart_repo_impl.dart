@@ -14,12 +14,23 @@ class CartRepoImpl implements ICartRepo {
   Future<Either<Failure, CartEntity>> _exec(Future<dynamic> Function() fn) async {
     if (!await _network.isConnected) return const Left(NetworkFailure());
     try { final r = await fn(); return Right(r.toEntity()); }
-    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override Future<Either<Failure, CartEntity>> addToCart(String productId) => _exec(() => _remote.addToCart(productId));
-  @override Future<Either<Failure, CartEntity>> getCart() => _exec(() => _remote.getCart());
-  @override Future<Either<Failure, CartEntity>> removeFromCart(String itemId) => _exec(() => _remote.removeFromCart(itemId));
-  @override Future<Either<Failure, CartEntity>> updateQuantity(String itemId, int count) => _exec(() => _remote.updateQuantity(itemId, count));
+
+  @override
+  Future<Either<Failure, CartEntity>> getCart() async {
+    if (!await _network.isConnected) return const Left(NetworkFailure());
+    try { final r = await _remote.getCart(); return Right(r.toEntity()); }
+    on DioException catch (e) {
+      // A user who never added anything has no cart yet: the API answers 404.
+      if (e.response?.statusCode == 404) return const Right(CartEntity.empty);
+      return Left(ServerFailure.fromDioException(e));
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
+  }
+
+  @override Future<Either<Failure, CartEntity>> removeFromCart(String productId) => _exec(() => _remote.removeFromCart(productId));
+  @override Future<Either<Failure, CartEntity>> updateQuantity(String productId, int count) => _exec(() => _remote.updateQuantity(productId, count));
   @override Future<Either<Failure, CartEntity>> clearCart() => _exec(() => _remote.clearCart());
 }

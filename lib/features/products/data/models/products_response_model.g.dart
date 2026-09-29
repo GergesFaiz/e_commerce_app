@@ -37,27 +37,34 @@ Map<String, dynamic> _$ProductDetailsResponseModelToJson(
     };
 
 ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel(
-      id: json['id'] as String,
+      id: _readId(json, 'id') as String,
       title: json['title'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String? ?? '',
       imageCover: json['imageCover'] as String,
       price: (json['price'] as num).toDouble(),
       priceAfterDiscount: (json['priceAfterDiscount'] as num?)?.toDouble(),
-      ratingsAverage: (json['ratingsAverage'] as num).toDouble(),
-      ratingsQuantity: (json['ratingsQuantity'] as num).toInt(),
-      sold: (json['sold'] as num).toInt(),
-      quantity: (json['quantity'] as num).toInt(),
-      images:
-          (json['images'] as List<dynamic>).map((e) => e as String).toList(),
-      category: CategoryRef.fromJson(json['category'] as Map<String, dynamic>),
+      ratingsAverage: (json['ratingsAverage'] as num?)?.toDouble() ?? 0,
+      ratingsQuantity: (json['ratingsQuantity'] as num?)?.toInt() ?? 0,
+      sold: (json['sold'] as num?)?.toInt() ?? 0,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      images: (json['images'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+      category: json['category'] == null
+          ? null
+          : CategoryRef.fromJson(json['category'] as Map<String, dynamic>),
+      brand: json['brand'] == null
+          ? null
+          : CategoryRef.fromJson(json['brand'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'description': instance.description,
       'imageCover': instance.imageCover,
+      'description': instance.description,
       'price': instance.price,
       'priceAfterDiscount': instance.priceAfterDiscount,
       'ratingsAverage': instance.ratingsAverage,
@@ -65,7 +72,8 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'sold': instance.sold,
       'quantity': instance.quantity,
       'images': instance.images,
-      'category': instance.category.toJson(),
+      'category': instance.category?.toJson(),
+      'brand': instance.brand?.toJson(),
     };
 
 PageMeta _$PageMetaFromJson(Map<String, dynamic> json) => PageMeta(
@@ -81,8 +89,8 @@ Map<String, dynamic> _$PageMetaToJson(PageMeta instance) => <String, dynamic>{
     };
 
 CategoryRef _$CategoryRefFromJson(Map<String, dynamic> json) => CategoryRef(
-      id: json['id'] as String,
-      name: json['name'] as String,
+      id: _readId(json, 'id') as String? ?? '',
+      name: json['name'] as String? ?? '',
     );
 
 Map<String, dynamic> _$CategoryRefToJson(CategoryRef instance) =>

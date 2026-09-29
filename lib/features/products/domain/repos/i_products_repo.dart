@@ -4,12 +4,16 @@ import '../entities/product_entity.dart';
 
 class ProductQuery {
   final String? categoryId;
+  final String? subcategoryId;
+  final String? brandId;
   final String? keyword;
   final String? sort;
   final int page;
   final int limit;
   const ProductQuery({
     this.categoryId,
+    this.subcategoryId,
+    this.brandId,
     this.keyword,
     this.sort,
     this.page = 1,

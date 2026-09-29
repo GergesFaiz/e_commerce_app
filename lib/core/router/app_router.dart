@@ -8,16 +8,14 @@ import '../../features/auth/presentation/screens/password_recovery_screens.dart'
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
-import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../features/home/presentation/screens/categories_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/home/presentation/screens/main_shell.dart';
 import '../../features/products/presentation/cubit/products_cubit.dart';
 import '../../features/products/presentation/screens/products_screen.dart';
 import '../../features/products/presentation/screens/product_details_screen.dart';
 import '../../features/reviews/presentation/cubit/reviews_cubit.dart';
-import '../../features/cart/presentation/cubit/cart_cubit.dart';
 import '../../features/cart/presentation/screens/cart_screen.dart';
-import '../../features/wishlist/presentation/cubit/wishlist_cubit.dart';
 import '../../features/wishlist/presentation/screens/wishlist_screen.dart';
 import '../../features/orders/presentation/cubit/orders_cubit.dart';
 import '../../features/orders/presentation/screens/orders_screen.dart';
@@ -37,6 +35,26 @@ class AppRouter {
   static const String wishlist  = '/wishlist';
   static const String orders    = '/orders';
   static const String account   = '/account';
+
+  static String productDetails(String id) => '/product/$id';
+
+  /// Product list filtered like the API: category, subcategory, brand or keyword.
+  static String productList({
+    String? title,
+    String? categoryId,
+    String? subcategoryId,
+    String? brandId,
+    String? query,
+  }) {
+    final params = <String, String>{
+      if (title != null) 'title': title,
+      if (categoryId != null) 'categoryId': categoryId,
+      if (subcategoryId != null) 'subcategoryId': subcategoryId,
+      if (brandId != null) 'brandId': brandId,
+      if (query != null && query.isNotEmpty) 'q': query,
+    };
+    return Uri(path: products, queryParameters: params.isEmpty ? null : params).toString();
+  }
 
   static final router = GoRouter(
     initialLocation: splash,
@@ -106,37 +124,56 @@ class AppRouter {
               email: state.uri.queryParameters['email'] ?? ''),
         ),
       ),
-      GoRoute(
-        path: home,
-        builder: (_, __) => MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (_) => sl<HomeCubit>()..getHomeData()),
-            BlocProvider(create: (_) => sl<ProductsCubit>()..getProducts()),
-          ],
-          child: const HomeScreen(),
-        ),
-      ),
-      GoRoute(
-        path: categories,
-        builder: (_, __) => BlocProvider(
-          create: (_) => sl<HomeCubit>()..getHomeData(),
-          child: const CategoriesScreen(),
-        ),
+      // The four tabs keep their state; the bottom bar lives in MainShell.
+      StatefulShellRoute.indexedStack(
+        builder: (_, __, shell) => MainShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: home,
+              builder: (_, __) => BlocProvider(
+                create: (_) => sl<ProductsCubit>()..getProducts(sort: '-sold'),
+                child: const HomeScreen(),
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: categories,
+              builder: (_, __) => const CategoriesScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: wishlist,
+              builder: (_, __) => const WishlistScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: account,
+              builder: (_, __) => BlocProvider(
+                create: (_) => sl<AuthCubit>(),
+                child: const AccountScreen(),
+              ),
+            ),
+          ]),
+        ],
       ),
       GoRoute(
         path: products,
         builder: (_, state) {
-          final categoryId = state.uri.queryParameters['categoryId'];
-          final q = state.uri.queryParameters['q'];
+          final params = state.uri.queryParameters;
+          final q = params['q'] ?? '';
           return BlocProvider(
-            create: (_) {
-              final cubit = sl<ProductsCubit>();
-              cubit.getProducts(categoryId: categoryId).then((_) {
-                if (q != null && q.isNotEmpty) cubit.setSearchQuery(q);
-              });
-              return cubit;
-            },
-            child: ProductsScreen(initialQuery: q),
+            create: (_) => sl<ProductsCubit>()
+              ..getProducts(
+                categoryId: params['categoryId'],
+                subcategoryId: params['subcategoryId'],
+                brandId: params['brandId'],
+                query: q,
+              ),
+            child: ProductsScreen(title: params['title'], initialQuery: q),
           );
         },
       ),
@@ -160,30 +197,13 @@ class AppRouter {
       ),
       GoRoute(
         path: cart,
-        builder: (_, __) => BlocProvider(
-          create: (_) => sl<CartCubit>()..getCart(),
-          child: const CartScreen(),
-        ),
-      ),
-      GoRoute(
-        path: wishlist,
-        builder: (_, __) => BlocProvider(
-          create: (_) => sl<WishlistCubit>()..getWishlist(),
-          child: const WishlistScreen(),
-        ),
+        builder: (_, __) => const CartScreen(),
       ),
       GoRoute(
         path: orders,
         builder: (_, __) => BlocProvider(
           create: (_) => sl<OrdersCubit>()..getOrders(),
           child: const OrdersScreen(),
-        ),
-      ),
-      GoRoute(
-        path: account,
-        builder: (_, __) => BlocProvider(
-          create: (_) => sl<AuthCubit>(),
-          child: const AccountScreen(),
         ),
       ),
     ],

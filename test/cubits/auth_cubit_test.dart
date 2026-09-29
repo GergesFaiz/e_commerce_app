@@ -161,6 +161,10 @@ void main() {
 
       expect(CacheHelper.getToken(), 'jwt-token');
       expect(CacheHelper.getUserId(), 'u1');
+      // Profile shown on the Account tab.
+      expect(CacheHelper.userName, user.name);
+      expect(CacheHelper.userEmail, user.email);
+      expect(CacheHelper.userPhone, '01000000000');
     });
   });
 
@@ -168,12 +172,15 @@ void main() {
       await CacheHelper.saveToken('jwt-token');
       expect(CacheHelper.getToken(), 'jwt-token');
 
+      await CacheHelper.saveProfile(name: 'Gerges', email: 'g@example.com');
+
       final cubit = buildCubit(const Right(user));
-      cubit.logout();
-      await pumpEventQueue();
+      await cubit.logout();
 
       expect(cubit.state, isA<AuthInitial>());
       expect(CacheHelper.getToken(), isNull);
+      expect(CacheHelper.userName, isEmpty);
+      expect(CacheHelper.userEmail, isEmpty);
     });
   });
 }

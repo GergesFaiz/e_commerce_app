@@ -5,13 +5,17 @@ class ProductEntity {
   final double ratingsAverage;
   final int ratingsQuantity, sold, quantity;
   final List<String> images;
-  final String categoryName;
+  final String categoryName, brandName;
 
   const ProductEntity({
     required this.id, required this.title, required this.description,
     required this.imageCover, required this.price, this.priceAfterDiscount,
     required this.ratingsAverage, required this.ratingsQuantity,
     required this.sold, required this.quantity, required this.images,
-    required this.categoryName,
+    required this.categoryName, this.brandName = '',
   });
+
+  /// Price the customer pays (discounted when a discount exists).
+  double get finalPrice => priceAfterDiscount ?? price;
+  bool get hasDiscount => priceAfterDiscount != null && priceAfterDiscount! < price;
 }

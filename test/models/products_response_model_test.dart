@@ -2,12 +2,17 @@ import 'package:e_commerce/features/products/data/models/products_response_model
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  // Shapes as returned by GET /api/v1/products: the populated category and
+  // brand only carry `_id`, the product has both `_id` and `id`.
   final categoryJson = {
-    'id': 'cat-electronics',
+    '_id': 'cat-electronics',
     'name': 'Electronics',
+    'slug': 'electronics',
+    'image': 'img/electronics.jpg',
   };
 
   final productJson = {
+    '_id': 'p1',
     'id': 'p1',
     'title': 'Wireless Headphones',
     'description': 'Active noise cancelling over-ear headphones',
@@ -20,6 +25,7 @@ void main() {
     'quantity': 30,
     'images': ['img/a.jpg', 'img/b.jpg'],
     'category': categoryJson,
+    'brand': {'_id': 'b1', 'name': 'Sony', 'slug': 'sony', 'image': 'img/sony.png'},
   };
 
   group('ProductModel', () {
@@ -37,8 +43,25 @@ void main() {
       expect(model.sold, 45);
       expect(model.quantity, 30);
       expect(model.images, ['img/a.jpg', 'img/b.jpg']);
-      expect(model.category.id, 'cat-electronics');
-      expect(model.category.name, 'Electronics');
+      expect(model.category!.id, 'cat-electronics');
+      expect(model.category!.name, 'Electronics');
+      expect(model.brand!.name, 'Sony');
+    });
+
+    test('tolerates products without id, sold, images or description', () {
+      final json = Map<String, dynamic>.from(productJson)
+        ..remove('id')
+        ..remove('sold')
+        ..remove('images')
+        ..remove('description')
+        ..remove('brand');
+      final model = ProductModel.fromJson(json);
+
+      expect(model.id, 'p1');
+      expect(model.sold, 0);
+      expect(model.images, isEmpty);
+      expect(model.description, '');
+      expect(model.toEntity().brandName, '');
     });
 
     test('toJson produces equivalent JSON that round-trips', () {
@@ -52,7 +75,7 @@ void main() {
       expect(reparsed.priceAfterDiscount, model.priceAfterDiscount);
       expect(reparsed.ratingsAverage, model.ratingsAverage);
       expect(reparsed.images, model.images);
-      expect(reparsed.category.name, model.category.name);
+      expect(reparsed.category!.name, model.category!.name);
     });
 
     test('handles nullable priceAfterDiscount', () {
@@ -70,6 +93,9 @@ void main() {
       expect(entity.price, 129.99);
       expect(entity.priceAfterDiscount, 99.99);
       expect(entity.categoryName, 'Electronics');
+      expect(entity.brandName, 'Sony');
+      expect(entity.finalPrice, 99.99);
+      expect(entity.hasDiscount, isTrue);
       expect(entity.images, hasLength(2));
     });
   });
@@ -101,7 +127,7 @@ void main() {
           ProductDetailsResponseModel.fromJson({'data': productJson});
 
       expect(details.data.price, 129.99);
-      expect(details.data.category.name, 'Electronics');
+      expect(details.data.category!.name, 'Electronics');
     });
   });
 }

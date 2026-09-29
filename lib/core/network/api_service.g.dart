@@ -265,6 +265,7 @@ class _ApiService implements ApiService {
     int? page,
     int? limit,
     String? categoryId,
+    String? subcategoryId,
     String? brandId,
     num? minPrice,
     num? maxPrice,
@@ -276,6 +277,7 @@ class _ApiService implements ApiService {
       r'page': page,
       r'limit': limit,
       r'category[in]': categoryId,
+      r'subcategory[in]': subcategoryId,
       r'brand': brandId,
       r'price[gte]': minPrice,
       r'price[lte]': maxPrice,
@@ -845,7 +847,7 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<List<OrderResponseModel>> getUserOrders(
+  Future<List<OrderModel>> getUserOrders(
     String userId,
     String token,
   ) async {
@@ -855,7 +857,7 @@ class _ApiService implements ApiService {
     _headers.removeWhere((k, v) => v == null);
     final Map<String, dynamic>? _data = null;
     final _result = await _dio
-        .fetch<List<dynamic>>(_setStreamType<List<OrderResponseModel>>(Options(
+        .fetch<List<dynamic>>(_setStreamType<List<OrderModel>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -872,8 +874,7 @@ class _ApiService implements ApiService {
               baseUrl,
             ))));
     var value = _result.data!
-        .map((dynamic i) =>
-            OrderResponseModel.fromJson(i as Map<String, dynamic>))
+        .map((dynamic i) => OrderModel.fromJson(i as Map<String, dynamic>))
         .toList();
     return value;
   }

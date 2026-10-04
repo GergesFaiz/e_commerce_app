@@ -4,6 +4,11 @@ import 'app_colors.dart';
 
 /// Route E-Commerce theme (Poppins everywhere, white surfaces).
 class AppTheme {
+  /// Poppins style for places that replace the theme's text style
+  /// (e.g. `ButtonStyle.textStyle`), so they keep the design font.
+  static TextStyle font(double size, [FontWeight weight = FontWeight.w400]) =>
+      GoogleFonts.poppins(fontSize: size, fontWeight: weight);
+
   static ThemeData get lightTheme {
     final base = ThemeData(
       primaryColor: AppColors.primary,
@@ -18,6 +23,8 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.primary),
         titleTextStyle: GoogleFonts.poppins(
@@ -36,6 +43,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          elevation: 0,
           textStyle: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,

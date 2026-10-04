@@ -23,7 +23,7 @@ class ReviewsRepoImpl implements IReviewsRepo {
       return Right(await _remote.getReviews(productId));
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -33,7 +33,7 @@ class ReviewsRepoImpl implements IReviewsRepo {
       return Right(await _remote.addReview(productId: productId, text: text, rating: rating));
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 }
 

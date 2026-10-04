@@ -148,7 +148,8 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => RemoveFromCartUseCase(sl()));
   sl.registerLazySingleton(() => UpdateCartQuantityUseCase(sl()));
   sl.registerLazySingleton(() => ClearCartUseCase(sl()));
-  sl.registerFactory(() => CartCubit(sl(), sl(), sl(), sl(), sl()));
+  // Shared by every screen (badge, product cards, cart page).
+  sl.registerLazySingleton(() => CartCubit(sl(), sl(), sl(), sl(), sl()));
 
   // ── Wishlist ──
   sl.registerLazySingleton<WishlistRemoteDatasource>(
@@ -160,7 +161,8 @@ Future<void> setupServiceLocator() async {
   sl.registerLazySingleton(() => AddToWishlistUseCase(sl()));
   sl.registerLazySingleton(() => GetWishlistUseCase(sl()));
   sl.registerLazySingleton(() => RemoveFromWishlistUseCase(sl()));
-  sl.registerFactory(() => WishlistCubit(sl(), sl(), sl()));
+  // Shared by every screen (hearts on cards, wishlist tab).
+  sl.registerLazySingleton(() => WishlistCubit(sl(), sl(), sl()));
 
   // ── Orders ──
   sl.registerLazySingleton<OrdersRemoteDatasource>(

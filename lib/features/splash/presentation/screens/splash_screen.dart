@@ -33,8 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (valid) {
       context.go(AppRouter.home);
     } else {
-      await CacheHelper.removeToken();
-      await CacheHelper.removeUserId();
+      await CacheHelper.clearSession();
       if (mounted) context.go(AppRouter.login);
     }
   }

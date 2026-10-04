@@ -52,6 +52,11 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       {'currentPassword': current, 'password': password, 'rePassword': password},
       token,
     );
+    // Changing the password invalidates the old token; the API returns a new one.
+    final data = res.data;
+    if (data is Map && data['token'] is String) {
+      await CacheHelper.saveToken(data['token'] as String);
+    }
     return _messageOf(res.data, 'Password updated');
   }
 

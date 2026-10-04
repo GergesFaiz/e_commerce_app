@@ -17,7 +17,7 @@ class HomeRepoImpl implements IHomeRepo {
     try {
       final res = await _remote.getCategories();
       return Right(res.data.map((e) => e.toEntity()).toList());
-    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -26,7 +26,7 @@ class HomeRepoImpl implements IHomeRepo {
     try {
       final res = await _remote.getBrands();
       return Right(res.data.map((e) => e.toEntity()).toList());
-    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -35,6 +35,6 @@ class HomeRepoImpl implements IHomeRepo {
     try {
       final res = await _remote.getSubCategories(categoryId);
       return Right(res.data.map((e) => e.toEntity()).toList());
-    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    } on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 }

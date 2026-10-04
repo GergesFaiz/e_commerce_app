@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/app_router.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_error_widget.dart';
 import '../../../../core/widgets/custom_loading.dart';
+import '../../../../core/widgets/route_header.dart';
 import '../../../../core/widgets/route_widgets.dart';
 import '../cubit/products_cubit.dart';
 import '../cubit/products_state.dart';
 import '../widgets/product_card.dart';
 
+/// Product grid for a category, subcategory, brand or search query.
 class ProductsScreen extends StatefulWidget {
+  final String? title;
   final String? initialQuery;
-  const ProductsScreen({super.key, this.initialQuery});
+  const ProductsScreen({super.key, this.title, this.initialQuery});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
@@ -54,107 +56,100 @@ class _ProductsScreenState extends State<ProductsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Row(
-                children: [
-                  const RouteLogo(),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: Color(0xFF004182), size: 30),
-                    onPressed: () => context.push(AppRouter.cart),
-                  ),
-                ],
-              ),
+            RouteHeader(
+              showBack: true,
+              controller: _searchController,
+              onChanged: (v) => context.read<ProductsCubit>().setSearchQuery(v),
+              onSubmitted: (v) => context.read<ProductsCubit>().setSearchQuery(v),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'what do you search for?',
-                  prefixIcon: Icon(Icons.search,
-                      color: Color(0xFF004182), size: 28),
-                ).copyWith(
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF004182))),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF004182))),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF004182), width: 1.5)),
-                ),
-                onChanged: (v) =>
-                    context.read<ProductsCubit>().setSearchQuery(v),
-              ),
-            ),
+            _toolbar(),
             Expanded(
               child: BlocBuilder<ProductsCubit, ProductsState>(
                 builder: (context, state) {
-                  if (state is ProductsLoading) {
-                    return const CustomLoading();
-                  }
                   if (state is ProductsFailure) {
                     return CustomErrorWidget(
                       message: state.message,
-                      onRetry: () =>
-                          context.read<ProductsCubit>().getProducts(),
+                      onRetry: () => context.read<ProductsCubit>().refresh(),
                     );
                   }
-                  if (state is ProductsLoaded) {
-                    if (state.products.isEmpty) {
-                      return const Center(
-                          child: Text('No products found.'));
-                    }
-                    return RefreshIndicator(
-                      onRefresh: () =>
-                          context.read<ProductsCubit>().getProducts(),
-                      color: const Color(0xFF004182),
-                      child: GridView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.62,
-                        ),
-                        itemCount: state.products.length +
-                            (state.hasMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= state.products.length) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          return ProductCard(
-                              product: state.products[index]);
-                        },
+                  if (state is! ProductsLoaded) return const CustomLoading();
+                  if (state.products.isEmpty) {
+                    return const EmptyState(
+                      icon: Icons.search_off,
+                      title: 'No products found',
+                      message: 'Try another word or category.',
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () => context.read<ProductsCubit>().refresh(),
+                    color: AppColors.primary,
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        mainAxisExtent: 250,
                       ),
-                    );
-                  }
-                  return const SizedBox();
+                      itemCount: state.products.length +
+                          (state.hasMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= state.products.length) {
+                          return const CustomLoading();
+                        }
+                        return ProductCard(product: state.products[index]);
+                      },
+                    ),
+                  );
                 },
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: RouteBottomNav(
-        currentIndex: 1,
-        onTap: (i) {
-          if (i == 0) context.go(AppRouter.home);
-          if (i == 1) context.go(AppRouter.categories);
-          if (i == 2) context.go(AppRouter.wishlist);
-          if (i == 3) context.go(AppRouter.account);
-        },
-      ),
+    );
+  }
+
+  Widget _toolbar() {
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      buildWhen: (a, b) => b is ProductsLoaded || a.runtimeType != b.runtimeType,
+      builder: (context, state) {
+        final sort = state is ProductsLoaded ? state.sortByPriceAsc : null;
+        final title = widget.title ?? 'All Products';
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 8, 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.ink)),
+              ),
+              TextButton.icon(
+                onPressed: () => context.read<ProductsCubit>().toggleSortByPrice(),
+                style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                icon: Icon(
+                  sort == null
+                      ? Icons.swap_vert
+                      : sort
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                  size: 18,
+                ),
+                label: Text(sort == null
+                    ? 'Sort by price'
+                    : sort
+                        ? 'Price: low to high'
+                        : 'Price: high to low'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

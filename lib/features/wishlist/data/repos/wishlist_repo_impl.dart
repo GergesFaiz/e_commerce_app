@@ -14,21 +14,21 @@ class WishlistRepoImpl implements IWishlistRepo {
   @override
   Future<Either<Failure, List<WishlistItemEntity>>> getWishlist() async {
     if (!await _network.isConnected) return const Left(NetworkFailure());
-    try { final r = await _remote.getWishlist(); return Right(r.data?.map((e) => e.toEntity()).toList() ?? []); }
-    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    try { final r = await _remote.getWishlist(); return Right(r.data.map((e) => e.toEntity()).toList()); }
+    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
-  Future<Either<Failure, String>> addToWishlist(String productId) async {
+  Future<Either<Failure, List<String>>> addToWishlist(String productId) async {
     if (!await _network.isConnected) return const Left(NetworkFailure());
-    try { final r = await _remote.addToWishlist(productId); return Right(r.message); }
-    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    try { final r = await _remote.addToWishlist(productId); return Right(r.ids); }
+    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
-  Future<Either<Failure, String>> removeFromWishlist(String productId) async {
+  Future<Either<Failure, List<String>>> removeFromWishlist(String productId) async {
     if (!await _network.isConnected) return const Left(NetworkFailure());
-    try { final r = await _remote.removeFromWishlist(productId); return Right(r.message); }
-    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); }
+    try { final r = await _remote.removeFromWishlist(productId); return Right(r.ids); }
+    on DioException catch (e) { return Left(ServerFailure.fromDioException(e)); } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 }

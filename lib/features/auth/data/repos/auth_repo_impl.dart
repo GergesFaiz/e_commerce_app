@@ -19,7 +19,7 @@ class AuthRepoImpl implements IAuthRepo {
       return Right(model.toEntity());
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -30,7 +30,7 @@ class AuthRepoImpl implements IAuthRepo {
       return Right(model.toEntity());
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
@@ -41,7 +41,7 @@ class AuthRepoImpl implements IAuthRepo {
       return Right(msg);
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   Future<Either<Failure, T>> _guarded<T>(Future<T> Function() call) async {
@@ -50,7 +50,7 @@ class AuthRepoImpl implements IAuthRepo {
       return Right(await call());
     } on DioException catch (e) {
       return Left(ServerFailure.fromDioException(e));
-    }
+    } catch (_) { return const Left(ServerFailure.unexpected()); }
   }
 
   @override
